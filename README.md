@@ -19,7 +19,16 @@ interface.
 |---|---|
 | `index.html` | Landing da Academia do Consultor (apresentação da empresa, método, padrão & protocolo, trilha do novato ao pro) |
 | `dashboard.html` | Dashboard do consultor — trilha de treinamento, padrões & protocolos, vendas, comissões e ranking |
+| `aula.html` | Player de aula (vídeo, playlist, abas, materiais e anotações) |
+| `aula-abordagem.html` | Aula de **abordagem: formas e técnicas** — passo a passo, 5 modelos de abordagem em sinaleiro, área comercial, frases de impacto e como os profissionais de destaque atuam |
+| `protocolos.html` | Manual de **padrões & protocolos** (cotação, vistoria, fechamento, pós-venda) com checklists interativas |
+| `scripts.html` | **Biblioteca de scripts & objeções** — reativação, Cartão de Todos e contorno de 10 objeções |
+| `gestao.html` | **Gestão de conteúdo** — adicionar informações e vídeos para cada nível (do novato ao pro) |
 | `styleguide.html` | Referência do Design System (cores, logo, tipografia, componentes) |
+
+> Os scripts comerciais (abordagem em sinaleiro/área comercial, contorno de
+> objeções, reativação, Cartão de Todos e checklist de vistoria) foram
+> incorporados a partir do material operacional **Script_2805**.
 
 ## 🎨 Design System
 
