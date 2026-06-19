@@ -142,6 +142,80 @@
     });
   }
 
+  // ---- Avaliação / quiz + certificado ----
+  var quizForm = document.getElementById("quizForm");
+  if (quizForm) {
+    var questions = quizForm.querySelectorAll("[data-q]");
+    var total = questions.length;
+    var PASS = 0.7;
+    var answeredEl = document.getElementById("answered");
+    var barEl = document.getElementById("quizBar");
+
+    function updateProgress() {
+      var done = 0;
+      questions.forEach(function (q) { if (q.querySelector("input:checked")) done++; });
+      if (answeredEl) answeredEl.textContent = done;
+      if (barEl) barEl.style.width = Math.round((done / total) * 100) + "%";
+    }
+    quizForm.addEventListener("change", function (e) { if (e.target && e.target.type === "radio") updateProgress(); });
+
+    quizForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var correct = 0;
+      questions.forEach(function (q) {
+        var chosen = q.querySelector("input:checked");
+        q.classList.add("graded");
+        var right = q.querySelector("input[data-correct]");
+        // marca a opção correta
+        var rightOpt = right.closest(".opt");
+        rightOpt.classList.add("correct");
+        if (!rightOpt.querySelector(".res")) {
+          var s = document.createElement("span"); s.className = "res"; s.textContent = "✓ correta"; rightOpt.appendChild(s);
+        }
+        if (chosen) {
+          if (chosen.hasAttribute("data-correct")) {
+            correct++;
+          } else {
+            var wrongOpt = chosen.closest(".opt");
+            wrongOpt.classList.add("wrong");
+            var w = document.createElement("span"); w.className = "res"; w.textContent = "✗ sua resposta"; wrongOpt.appendChild(w);
+          }
+        }
+        // bloqueia alterações
+        q.querySelectorAll("input").forEach(function (i) { i.disabled = true; });
+      });
+
+      var pct = Math.round((correct / total) * 100);
+      var passed = correct / total >= PASS;
+
+      var result = document.getElementById("quizResult");
+      document.getElementById("quizScore").textContent = pct + "%";
+      document.getElementById("quizMsg").textContent = passed ? "Parabéns, você foi aprovado! 🎉" : "Quase lá — não foi dessa vez.";
+      document.getElementById("quizSub").textContent = "Você acertou " + correct + " de " + total + " questões." + (passed ? " Seu certificado foi liberado abaixo." : " A nota mínima é 70% (5 de 7). Revise o conteúdo e tente novamente.");
+      result.className = "quiz-result quiz-print-hide show " + (passed ? "pass" : "fail");
+
+      document.getElementById("quizSubmit").style.display = "none";
+      document.getElementById("quizReset").style.display = "";
+
+      if (passed) {
+        var cw = document.getElementById("certWrap");
+        cw.classList.add("show");
+        document.getElementById("certScore").textContent = pct + "%";
+        var d = new Date();
+        document.getElementById("certDate").textContent = d.toLocaleDateString("pt-BR");
+        document.getElementById("certId").textContent = "TP-" + d.getFullYear() + "-" + String(Date.now()).slice(-6);
+        cw.scrollIntoView({ behavior: "smooth" });
+      } else {
+        result.scrollIntoView({ behavior: "smooth" });
+      }
+    });
+
+    var resetBtn = document.getElementById("quizReset");
+    if (resetBtn) resetBtn.addEventListener("click", function () { location.reload(); });
+
+    updateProgress();
+  }
+
   // Rolagem suave já é via CSS; aqui animamos as barras do dashboard ao carregar
   window.addEventListener("load", function () {
     document.querySelectorAll(".chart .bar").forEach(function (bar, i) {
