@@ -8,8 +8,8 @@
 // ============================================================
 window.TP_CONFIG = {
   // Project Settings > API, no painel do Supabase:
-  SUPABASE_URL: "",            // ex.: "https://abcdefgh.supabase.co"
-  SUPABASE_ANON_KEY: "",       // chave "anon public"
+  SUPABASE_URL: "https://tczyyflnqxvknbhqrevt.supabase.co",            // ex.: "https://abcdefgh.supabase.co"
+  SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjenl5ZmxucXh2a25iaHFyZXZ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5MTA4MDksImV4cCI6MjA5NzQ4NjgwOX0.D09EEt0cIZ0YkGa2lfUTcdJ0TpDPt2Pe90x-3VRXUt8",       // chave "anon public"
 
   // E-mail real da conta de administrador criada no Supabase.
   // No login, digitar "admin" usa este e-mail automaticamente.
