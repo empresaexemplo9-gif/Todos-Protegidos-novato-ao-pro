@@ -359,17 +359,19 @@
       e.preventDefault();
       var nome = val("nome"), email = val("email").toLowerCase();
       var telefone = val("telefone"), senha = val("senha"), senha2 = val("senha2");
+      var empresa = val("empresa");
       var termos = document.getElementById("termos");
 
       if (!nome || nome.split(" ").length < 2) return showMsg("Informe seu nome completo.", false);
       if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return showMsg("Digite um e-mail válido.", false);
+      if (!empresa) return showMsg("Informe o código da empresa/unidade.", false);
       if (senha.length < 6) return showMsg("A senha deve ter pelo menos 6 caracteres.", false);
       if (senha !== senha2) return showMsg("As senhas não conferem.", false);
       if (termos && !termos.checked) return showMsg("É preciso aceitar os termos para continuar.", false);
 
       var btn = cadastroForm.querySelector('button[type="submit"]');
       btn.disabled = true;
-      TPData.register({ nome: nome, email: email, telefone: telefone, senha: senha }).then(function (r) {
+      TPData.register({ nome: nome, email: email, telefone: telefone, senha: senha, tenant: empresa }).then(function (r) {
         if (!r.ok) { btn.disabled = false; return showMsg(r.error || "Não foi possível criar o acesso.", false); }
         if (r.needsConfirm) {
           showMsg("Acesso criado! Confirme o e-mail enviado e depois faça login.", true);

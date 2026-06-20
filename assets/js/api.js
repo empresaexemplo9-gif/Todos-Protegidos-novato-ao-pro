@@ -110,12 +110,17 @@
   // =================== Modo SUPABASE ===================
   var Cloud = {
     register: function (d) {
-      return sb.auth.signUp({ email: d.email, password: d.senha, options: { data: { nome: d.nome, telefone: d.telefone } } })
-        .then(function (r) {
-          if (r.error) return { ok: false, error: traduzErro(r.error.message) };
-          if (!r.data.session) return { ok: true, needsConfirm: true, session: null };
-          return Cloud.session().then(function (s) { return { ok: true, session: s }; });
-        });
+      var tenant = (d.tenant || "").trim();
+      return sb.rpc("tenant_existe", { p_slug: tenant }).then(function (rc) {
+        if (rc.error) return { ok: false, error: "Não foi possível validar o código da empresa." };
+        if (!rc.data) return { ok: false, error: "Código da empresa/unidade inválido." };
+        return sb.auth.signUp({ email: d.email, password: d.senha, options: { data: { nome: d.nome, telefone: d.telefone, tenant: tenant } } })
+          .then(function (r) {
+            if (r.error) return { ok: false, error: traduzErro(r.error.message) };
+            if (!r.data.session) return { ok: true, needsConfirm: true, session: null };
+            return Cloud.session().then(function (s) { return { ok: true, session: s }; });
+          });
+      });
     },
     login: function (user, senha) {
       var email = (user.toLowerCase() === "admin") ? ADMIN_EMAIL : user;

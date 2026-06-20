@@ -18,7 +18,9 @@ Nada no front-end precisa ser reescrito para ativar — basta configurar.
 ### 2. Criar as tabelas e regras
 1. No projeto, abra **SQL Editor**.
 2. Cole **todo** o conteúdo de [`supabase/schema.sql`](supabase/schema.sql) e clique em **Run**.
-   - Isso cria as tabelas `profiles`, `modulos`, `itens`, as políticas de segurança (RLS) e o conteúdo inicial.
+   - Cria as tabelas `tenants`, `profiles`, `modulos`, `itens`, as políticas de **isolamento por tenant** (RLS) e o **tenant inicial** (`matriz`).
+   - A **trilha começa vazia** — o admin de cada tenant cria os módulos. Nenhum dado de exemplo é inserido.
+   - Se já rodou um schema antigo neste projeto, rode antes o [`supabase/rollback.sql`](supabase/rollback.sql).
 
 ### 3. Pegar as chaves de API
 1. **Project Settings → API**.
@@ -36,32 +38,44 @@ window.TP_CONFIG = {
 ```
 Faça commit/push — o GitHub Pages publica e o backend fica ativo.
 
-### 5. Criar o administrador
-1. No Supabase: **Authentication → Users → Add user**.
+### 5. Criar o administrador (por tenant)
+> Como cada usuário pertence a um tenant, o admin é criado se **cadastrando pelo site** (assim o vínculo com o tenant é feito), e depois promovido.
+
+1. No site, abra **Criar meu acesso** e cadastre-se com:
    - E-mail: o mesmo do `ADMIN_EMAIL` (ex.: `admin@todosprotegidos.com.br`)
-   - Senha: a que desejar (ex.: `admin2026`)
-   - Marque **Auto Confirm User**.
+   - **Código da empresa/unidade:** `matriz`
 2. Promova esse usuário a admin no **SQL Editor**:
    ```sql
    update public.profiles set role = 'admin'
    where id = (select id from auth.users where email = 'admin@todosprotegidos.com.br');
    ```
-3. Na tela de login do site, digite **`admin`** e a senha — o sistema usa o `ADMIN_EMAIL` automaticamente.
+3. Na tela de login, digite **`admin`** e a senha — o sistema usa o `ADMIN_EMAIL` automaticamente.
 
-### 6. (Recomendado) Cadastro de consultores sem e-mail de confirmação
+### 6. (Recomendado) Cadastro sem e-mail de confirmação
 Para uso interno, em **Authentication → Providers → Email**, desative **Confirm email**.
-Assim, ao se cadastrar, o consultor já entra direto. (Se mantiver ativo, ele precisa confirmar o e-mail antes do primeiro login.)
+Assim o consultor entra direto ao se cadastrar.
+
+### 7. Multi-tenant (isolamento de empresas/unidades)
+- Cada usuário pertence a **um tenant**, definido pelo **código** digitado no cadastro (campo "Código da empresa/unidade").
+- Um tenant **só enxerga** seus próprios usuários e seu próprio conteúdo — isolamento garantido por RLS.
+- **Criar um novo tenant** (SQL Editor):
+  ```sql
+  insert into public.tenants (nome, slug) values ('Unidade SP', 'sp');
+  ```
+  Depois, os consultores dessa unidade se cadastram com o código `sp`, e o admin dela é promovido com o mesmo `update ... set role='admin'`.
+- **Superadmin** (enxerga todos os tenants): `update public.profiles set role='superadmin' where id = (...);`
 
 ---
 
 ## O que fica no banco
 | Tabela | Conteúdo |
 |---|---|
-| `profiles` | nome, telefone e **perfil** (`consultor`/`admin`) de cada usuário |
-| `modulos` | módulos da trilha |
-| `itens` | aulas, vídeos, informações e materiais de cada módulo |
+| `tenants` | empresas/unidades (cada uma com um `slug`/código) |
+| `profiles` | nome, telefone, **tenant** e **perfil** (`consultor`/`admin`/`superadmin`) |
+| `modulos` | módulos da trilha (de cada tenant) |
+| `itens` | aulas, vídeos, informações e materiais (de cada tenant) |
 
-**Segurança (RLS):** qualquer usuário logado **lê** a trilha; só **admin** cria/edita/exclui módulos e itens. Cada usuário só vê o próprio perfil (admin vê todos).
+**Segurança (RLS) — isolamento por tenant:** cada usuário só lê os dados do **seu** tenant; só **admin** do tenant cria/edita/exclui módulos e itens. `superadmin` enxerga todos os tenants.
 
 ---
 
