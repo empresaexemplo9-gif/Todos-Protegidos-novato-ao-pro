@@ -993,6 +993,77 @@
     }
   }
 
+  // ---- Ranking & metas ----
+  var rankingRoot = document.getElementById("rankingRoot");
+  if (rankingRoot) {
+    var MESES = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
+    var rNow = new Date(), rMes = rNow.getMonth() + 1, rAno = rNow.getFullYear();
+    var rMeta = null, rSess = null;
+    function rEmpty(m) { rankingRoot.innerHTML = '<div class="gestao-empty">' + m + '</div>'; }
+    function rBar(atual, meta) { var p = meta > 0 ? Math.min(100, Math.round(atual / meta * 100)) : 0; return '<div class="progress" style="margin-top:8px"><i style="width:' + p + '%"></i></div>'; }
+    function rRender(meta, ranking, vendas) {
+      rMeta = meta;
+      var tv = 0, tc = 0;
+      (vendas || []).forEach(function (v) { if (v.status === "cancelada") return; if (vIsMonth(v.data, rNow)) { tv++; tc += Number(v.comissao) || 0; } });
+      var mv = (meta && meta.meta_vendas) || 0, mc = (meta && meta.meta_comissao) || 0;
+      var desempenho = '<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px"><h3 style="margin:0">Seu desempenho · ' + MESES[rMes - 1] + ' de ' + rAno + '</h3><button class="btn btn-ghost btn-sm" id="editMeta">' + (meta ? "Editar meta" : "Definir meta") + '</button></div><div class="r-metrics">' +
+        '<div><div class="lbl muted" style="font-size:var(--tp-fs-xs)">Vendas</div><strong style="font-family:var(--tp-font-sans);font-size:var(--tp-fs-xl)">' + tv + (mv ? ' <span class="muted" style="font-weight:400;font-size:var(--tp-fs-sm)">/ ' + mv + '</span>' : '') + '</strong>' + rBar(tv, mv) + '</div>' +
+        '<div><div class="lbl muted" style="font-size:var(--tp-fs-xs)">Comissão</div><strong style="font-family:var(--tp-font-sans);font-size:var(--tp-fs-xl)">' + vBRL(tc) + (mc ? ' <span class="muted" style="font-weight:400;font-size:var(--tp-fs-sm)">/ ' + vBRL(mc) + '</span>' : '') + '</strong>' + rBar(tc, mc) + '</div>' +
+        '</div></div>';
+      var tableCard;
+      if (!ranking || !ranking.length) {
+        tableCard = '<div class="panel" style="margin-top:24px"><div class="panel-head"><h3>Ranking do mês</h3></div><div class="gestao-empty">O ranking aparece quando houver vendas registradas no mês.</div></div>';
+      } else {
+        var rows = ranking.map(function (r, i) {
+          var me = rSess && r.nome && rSess.nome && r.nome.toLowerCase() === rSess.nome.toLowerCase();
+          return '<tr' + (me ? ' style="background:var(--tp-green-50)"' : '') + '><td style="font-weight:700;color:var(--tp-green-700)">' + (i + 1) + 'º</td><td style="font-weight:600">' + vEsc(r.nome) + (me ? ' <span class="badge badge-blue">você</span>' : '') + '</td><td>' + (r.total_vendas || 0) + '</td><td>' + vBRL(r.total_comissao || 0) + '</td></tr>';
+        }).join("");
+        tableCard = '<div class="card" style="margin-top:24px;padding:6px"><div class="table-wrap"><table class="table"><thead><tr><th>#</th><th>Consultor</th><th>Vendas</th><th>Comissão</th></tr></thead><tbody>' + rows + '</tbody></table></div></div>';
+      }
+      rankingRoot.innerHTML = desempenho + tableCard;
+      var em = document.getElementById("editMeta"); if (em) em.addEventListener("click", rOpenMeta);
+    }
+    function rOpenMeta() {
+      var ov = document.createElement("div"); ov.className = "modal-overlay";
+      var mv = (rMeta && rMeta.meta_vendas) || "", mc = (rMeta && rMeta.meta_comissao) || "";
+      ov.innerHTML = '<div class="modal" role="dialog" aria-modal="true"><h3 style="margin:0">Meta de ' + MESES[rMes - 1] + '</h3><form class="m-form">' +
+        '<label class="m-field"><span>Meta de vendas</span><input name="meta_vendas" type="number" min="0" value="' + mv + '"></label>' +
+        '<label class="m-field"><span>Meta de comissão (R$)</span><input name="meta_comissao" type="number" min="0" step="0.01" value="' + mc + '"></label>' +
+        '<div class="m-msg" hidden></div><div style="display:flex;gap:10px;justify-content:flex-end;margin-top:4px"><button type="button" class="btn btn-ghost btn-sm" data-cancel>Cancelar</button><button type="submit" class="btn btn-primary btn-sm">Salvar meta</button></div></form></div>';
+      document.body.appendChild(ov); document.body.classList.add("nav-locked");
+      function close() { ov.parentNode && ov.parentNode.removeChild(ov); document.body.classList.remove("nav-locked"); }
+      ov.addEventListener("click", function (e) { if (e.target === ov) close(); });
+      ov.querySelector("[data-cancel]").addEventListener("click", close);
+      ov.querySelector(".m-form").addEventListener("submit", function (e) {
+        e.preventDefault();
+        var f = e.target, btn = f.querySelector('[type="submit"]'); btn.disabled = true;
+        TPData.setMeta(rMes, rAno, { meta_vendas: f.meta_vendas.value, meta_comissao: f.meta_comissao.value }).then(function (res) {
+          btn.disabled = false; if (res && res.ok === false) { var m = f.querySelector(".m-msg"); m.textContent = res.error || "Erro ao salvar."; m.hidden = false; return; } close(); rLoad();
+        }, function () { btn.disabled = false; var m = f.querySelector(".m-msg"); m.textContent = "Erro de conexão."; m.hidden = false; });
+      });
+    }
+    function rLoad() {
+      rEmpty("Carregando ranking…");
+      Promise.all([TPData.getMeta(rMes, rAno), TPData.getRanking(rMes, rAno), TPData.listVendas()]).then(function (r) { rRender(r[0], r[1] || [], r[2] || []); },
+        function () { rEmpty('Não foi possível carregar o ranking. Se as tabelas/função ainda não existem no Supabase, rode <code>db/migrations.sql</code> no SQL Editor.'); });
+    }
+    if (window.TPData) { TPData.session().then(function (s) { if (!s) { window.location.href = "login.html"; return; } rSess = s; rLoad(); }, function () { rLoad(); }); }
+  }
+
+  // ---- Dashboard: painel de ranking + meta do mês ----
+  var dashRankingEl = document.getElementById("dashRanking");
+  if (dashRankingEl && window.TPData && TPData.getRanking) {
+    var dNow = new Date(), dMes = dNow.getMonth() + 1, dAno = dNow.getFullYear();
+    TPData.getRanking(dMes, dAno).then(function (list) {
+      if (!list || !list.length) { dashRankingEl.innerHTML = "O ranking aparece quando houver vendas registradas no seu grupo."; return; }
+      dashRankingEl.className = ""; dashRankingEl.removeAttribute("style");
+      dashRankingEl.innerHTML = '<div class="rank-mini">' + list.slice(0, 5).map(function (r, i) {
+        return '<div class="rank-row"><span class="rank-pos">' + (i + 1) + 'º</span><span class="rank-nm">' + vEsc(r.nome) + '</span><span class="rank-val">' + vBRL(r.total_comissao || 0) + '</span></div>';
+      }).join("") + '</div>';
+    }, function () {});
+    TPData.getMeta(dMes, dAno).then(function (m) { var el = document.getElementById("metaMes"); if (el && m && m.meta_vendas) el.textContent = m.meta_vendas + " vendas"; });
+  }
+
   // ---- Reflete a sessão (nome/perfil) e injeta o botão "Sair" ----
   (function () {
     var chip = document.querySelector(".user-chip");

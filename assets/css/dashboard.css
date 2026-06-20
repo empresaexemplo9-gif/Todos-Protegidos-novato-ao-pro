@@ -193,3 +193,13 @@ body.nav-locked { overflow: hidden; }
 /* Resumo de vendas (mini-cards) */
 .v-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px; }
 @media (max-width: 680px) { .v-summary { grid-template-columns: 1fr; } }
+
+/* Ranking & metas */
+.r-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 18px; }
+@media (max-width: 560px) { .r-metrics { grid-template-columns: 1fr; } }
+.rank-mini { display: flex; flex-direction: column; }
+.rank-row { display: flex; align-items: center; gap: 12px; padding: 10px 4px; border-top: 1px solid var(--tp-line); }
+.rank-row:first-child { border-top: 0; }
+.rank-pos { font-weight: 700; color: var(--tp-green-700); width: 28px; flex: none; }
+.rank-nm { flex: 1; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rank-val { color: var(--tp-slate); white-space: nowrap; }

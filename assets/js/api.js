@@ -212,6 +212,21 @@
       var c = { id: uid(), modulo_id: d.modulo_id || null, modulo_titulo: d.modulo_titulo || "", score: Number(d.score) || 0, id_validacao: d.id_validacao || "", data: d.data || new Date().toISOString().slice(0, 10), criado_em: new Date().toISOString() };
       arr.unshift(c); lsSet("tp_certificados", arr);
       return Promise.resolve({ ok: true, certificado: c });
+    },
+
+    getRanking: function (mes, ano) {
+      var vendas = lsGet("tp_vendas", []), sess = lsGet("tp_sessao", null), tv = 0, tc = 0;
+      var ym = ano + "-" + ("0" + mes).slice(-2);
+      vendas.forEach(function (v) { if (v.status === "cancelada") return; if (String(v.data || "").slice(0, 7) === ym) { tv++; tc += Number(v.comissao) || 0; } });
+      if (!tv) return Promise.resolve([]);
+      return Promise.resolve([{ user_id: "local", nome: (sess && sess.nome) || "Você", total_vendas: tv, total_comissao: tc }]);
+    },
+    getMeta: function (mes, ano) { return Promise.resolve(lsGet("tp_metas", {})[ano + "-" + mes] || null); },
+    setMeta: function (mes, ano, d) {
+      var all = lsGet("tp_metas", {});
+      all[ano + "-" + mes] = { mes: mes, ano: ano, meta_vendas: Number(d.meta_vendas) || 0, meta_comissao: Number(d.meta_comissao) || 0 };
+      lsSet("tp_metas", all);
+      return Promise.resolve({ ok: true });
     }
   };
 
@@ -406,6 +421,24 @@
         if (row.modulo_id) return sb.from("certificados").delete().eq("user_id", u.id).eq("modulo_id", row.modulo_id).then(ins);
         return ins();
       });
+    },
+
+    getRanking: function (mes, ano) {
+      return sb.rpc("ranking_mensal", { p_mes: mes, p_ano: ano }).then(function (res) { if (res.error) throw res.error; return res.data || []; });
+    },
+    getMeta: function (mes, ano) {
+      return sb.auth.getUser().then(function (r) {
+        var u = r.data && r.data.user; if (!u) return null;
+        return sb.from("metas").select("*").eq("user_id", u.id).eq("mes", mes).eq("ano", ano).maybeSingle()
+          .then(function (res) { return res.data || null; });
+      });
+    },
+    setMeta: function (mes, ano, d) {
+      return sb.auth.getUser().then(function (r) {
+        var u = r.data && r.data.user; if (!u) return { ok: false, error: "Sessão expirada." };
+        return sb.from("metas").upsert({ user_id: u.id, mes: mes, ano: ano, meta_vendas: Number(d.meta_vendas) || 0, meta_comissao: Number(d.meta_comissao) || 0 }, { onConflict: "user_id,mes,ano" })
+          .then(function (res) { return res.error ? { ok: false, error: traduzErro(res.error.message) } : { ok: true }; });
+      });
     }
   };
 
@@ -443,6 +476,9 @@
     updateVenda: function (id, d) { return impl.updateVenda(id, d); },
     deleteVenda: function (id) { return impl.deleteVenda(id); },
     listCertificates: function () { return impl.listCertificates(); },
-    addCertificate: function (d) { return impl.addCertificate(d); }
+    addCertificate: function (d) { return impl.addCertificate(d); },
+    getRanking: function (mes, ano) { return impl.getRanking(mes, ano); },
+    getMeta: function (mes, ano) { return impl.getMeta(mes, ano); },
+    setMeta: function (mes, ano, d) { return impl.setMeta(mes, ano, d); }
   };
 })();
