@@ -408,11 +408,58 @@
     });
   }
 
+  // ---- Minha conta (editar dados da conta) ----
+  var contaForm = document.getElementById("contaForm");
+  if (contaForm) {
+    Array.prototype.forEach.call(document.querySelectorAll("[data-logout]"), function (b) { b.addEventListener("click", logout); });
+
+    var cmsg = document.getElementById("contaMsg");
+    function cShow(t, ok) { cmsg.textContent = t; cmsg.className = "form-msg show " + (ok ? "ok" : "err"); if (!ok) cmsg.scrollIntoView({ behavior: "smooth", block: "center" }); }
+    function cv(id) { var el = document.getElementById(id); return el ? el.value.trim() : ""; }
+
+    TPData.session().then(function (s) {
+      if (!s) { window.location.href = "login.html"; return; }
+      var e = document.getElementById("c_email"); if (e) e.value = s.email || "";
+      var n = document.getElementById("c_nome"); if (n) n.value = s.nome || "";
+      var t = document.getElementById("c_telefone"); if (t) t.value = s.telefone || "";
+      var p = document.getElementById("contaPerfil");
+      var papel = s.role === "admin" ? "Administrador" : s.role === "superadmin" ? "Superadmin" : "Consultor";
+      if (p) p.textContent = papel + " · atualize seus dados pessoais e sua senha.";
+    }, function () { window.location.href = "login.html"; });
+
+    contaForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var nome = cv("c_nome"), telefone = cv("c_telefone");
+      var senha = document.getElementById("c_senha").value || "";
+      var senha2 = document.getElementById("c_senha2").value || "";
+      if (!nome) return cShow("Informe seu nome.", false);
+      if (senha || senha2) {
+        if (senha.length < 6) return cShow("A nova senha deve ter pelo menos 6 caracteres.", false);
+        if (senha !== senha2) return cShow("As senhas não conferem.", false);
+      }
+      var btn = contaForm.querySelector('button[type="submit"]');
+      btn.disabled = true;
+      TPData.updateProfile({ nome: nome, telefone: telefone }).then(function (r) {
+        if (!r.ok) { btn.disabled = false; return cShow(r.error || "Não foi possível salvar os dados.", false); }
+        if (!senha) { btn.disabled = false; return cShow("Dados atualizados com sucesso! ✓", true); }
+        TPData.updatePassword(senha).then(function (r2) {
+          btn.disabled = false;
+          if (!r2.ok) return cShow("Dados salvos, mas a senha não pôde ser alterada: " + (r2.error || ""), false);
+          document.getElementById("c_senha").value = ""; document.getElementById("c_senha2").value = "";
+          cShow("Dados e senha atualizados com sucesso! ✓", true);
+        });
+      }, function () { btn.disabled = false; cShow("Erro de conexão. Tente novamente.", false); });
+    });
+  }
+
   // ---- Reflete a sessão (nome/perfil) e injeta o botão "Sair" ----
   (function () {
     var chip = document.querySelector(".user-chip");
     if (!chip) return;
     chip.style.marginLeft = "auto";
+    chip.style.cursor = "pointer";
+    chip.title = "Editar minha conta";
+    chip.addEventListener("click", function () { window.location.href = "conta.html"; });
     function apply(s) {
       if (!s || !s.nome) return;
       var nm = chip.querySelector(".nm"); if (nm) nm.textContent = s.nome;

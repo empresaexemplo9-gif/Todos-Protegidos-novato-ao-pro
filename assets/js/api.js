@@ -54,20 +54,20 @@
         return Promise.resolve({ ok: false, error: "Já existe um acesso com esse e-mail. Tente entrar." });
       consultores.push({ id: uid(), nome: d.nome, email: d.email, telefone: d.telefone, senha: d.senha, role: "consultor", criadoEm: new Date().toISOString() });
       lsSet("tp_consultores", consultores);
-      var sess = { nome: d.nome, email: d.email, role: "consultor" };
+      var sess = { nome: d.nome, email: d.email, telefone: d.telefone, role: "consultor" };
       lsSet("tp_sessao", sess);
       return Promise.resolve({ ok: true, session: sess });
     },
     login: function (user, senha) {
       var ukey = user.toLowerCase();
       if (ukey === "admin" && senha === ADMIN_LOCAL_SENHA) {
-        var a = { nome: "Administrador", email: "admin", role: "admin" };
+        var a = { nome: "Administrador", email: "admin", telefone: "", role: "admin" };
         lsSet("tp_sessao", a);
         return Promise.resolve({ ok: true, session: a });
       }
       var conta = lsGet("tp_consultores", []).filter(function (c) { return c.email === ukey && c.senha === senha; })[0];
       if (conta) {
-        var s = { nome: conta.nome, email: conta.email, role: "consultor" };
+        var s = { nome: conta.nome, email: conta.email, telefone: conta.telefone || "", role: "consultor" };
         lsSet("tp_sessao", s);
         return Promise.resolve({ ok: true, session: s });
       }
@@ -75,6 +75,24 @@
     },
     logout: function () { try { localStorage.removeItem("tp_sessao"); } catch (e) {} return Promise.resolve(); },
     session: function () { return Promise.resolve(lsGet("tp_sessao", null)); },
+
+    updateProfile: function (d) {
+      var sess = lsGet("tp_sessao", null);
+      if (!sess) return Promise.resolve({ ok: false, error: "Sessão expirada." });
+      var cons = lsGet("tp_consultores", []);
+      cons.forEach(function (c) { if (c.email === sess.email) { c.nome = d.nome; c.telefone = d.telefone; } });
+      lsSet("tp_consultores", cons);
+      sess.nome = d.nome; sess.telefone = d.telefone; lsSet("tp_sessao", sess);
+      return Promise.resolve({ ok: true });
+    },
+    updatePassword: function (nova) {
+      var sess = lsGet("tp_sessao", null);
+      if (!sess) return Promise.resolve({ ok: false, error: "Sessão expirada." });
+      var cons = lsGet("tp_consultores", []);
+      cons.forEach(function (c) { if (c.email === sess.email) { c.senha = nova; } });
+      lsSet("tp_consultores", cons);
+      return Promise.resolve({ ok: true });
+    },
 
     listModules: function () {
       var m = lsGet("tp_modulos", null);
@@ -135,12 +153,24 @@
       return sb.auth.getUser().then(function (r) {
         var user = r.data && r.data.user;
         if (!user) return null;
-        return sb.from("profiles").select("nome,role").eq("id", user.id).single()
+        return sb.from("profiles").select("nome,telefone,role").eq("id", user.id).single()
           .then(function (p) {
             var prof = p.data || {};
-            return { nome: prof.nome || user.email, email: user.email, role: prof.role || "consultor" };
+            return { nome: prof.nome || user.email, email: user.email, telefone: prof.telefone || "", role: prof.role || "consultor" };
           });
       });
+    },
+    updateProfile: function (d) {
+      return sb.auth.getUser().then(function (r) {
+        var u = r.data && r.data.user;
+        if (!u) return { ok: false, error: "Sessão expirada. Entre novamente." };
+        return sb.from("profiles").update({ nome: d.nome, telefone: d.telefone }).eq("id", u.id)
+          .then(function (res) { return res.error ? { ok: false, error: traduzErro(res.error.message) } : { ok: true }; });
+      });
+    },
+    updatePassword: function (nova) {
+      return sb.auth.updateUser({ password: nova })
+        .then(function (res) { return res.error ? { ok: false, error: traduzErro(res.error.message) } : { ok: true }; });
     },
     listModules: function () {
       return Promise.all([
@@ -190,6 +220,8 @@
     login: function (u, s) { return impl.login(u, s); },
     logout: function () { return impl.logout(); },
     session: function () { return impl.session(); },
+    updateProfile: function (d) { return impl.updateProfile(d); },
+    updatePassword: function (nova) { return impl.updatePassword(nova); },
     listModules: function () { return impl.listModules(); },
     addModule: function (t, s) { return impl.addModule(t, s); },
     deleteModule: function (id) { return impl.deleteModule(id); },
