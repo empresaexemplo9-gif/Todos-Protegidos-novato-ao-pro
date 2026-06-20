@@ -2,9 +2,11 @@
 (function () {
   "use strict";
 
-  // Sessão (login client-side)
-  function getSessao() { try { return JSON.parse(localStorage.getItem("tp_sessao") || "null"); } catch (e) { return null; } }
-  function logout() { try { localStorage.removeItem("tp_sessao"); } catch (e) {} window.location.href = "login.html"; }
+  // Sessão / logout (via camada de dados TPData — Supabase ou local)
+  function logout() {
+    var done = function () { try { localStorage.removeItem("tp_sessao"); } catch (e) {} window.location.href = "login.html"; };
+    if (window.TPData) { TPData.logout().then(done, done); } else { done(); }
+  }
 
   // Menu mobile (landing)
   var toggle = document.querySelector(".nav-toggle");
@@ -75,23 +77,9 @@
     });
   }
 
-  // ---- Gestão de conteúdo: módulos, aulas e vídeos (persistente) ----
+  // ---- Gestão de conteúdo: módulos, aulas e vídeos (Supabase/local) ----
   var gestaoRoot = document.getElementById("gestaoRoot");
-  if (gestaoRoot && (function () {
-    // Proteção: somente administrador acessa a gestão
-    var sess = getSessao();
-    if (sess && sess.role === "admin") return true;
-    var addBtn = document.getElementById("addModulo"); if (addBtn) addBtn.style.display = "none";
-    var rstBtn = document.getElementById("gestaoReset"); if (rstBtn) rstBtn.style.display = "none";
-    gestaoRoot.innerHTML =
-      '<div class="gestao-empty" style="padding:48px 32px">' +
-        '<div style="font-family:var(--tp-font-sans);font-weight:800;font-size:var(--tp-fs-xl);color:var(--tp-ink);margin-bottom:8px">Acesso restrito</div>' +
-        '<p style="max-width:42ch;margin:0 auto 18px">Esta área é exclusiva para <strong>administradores</strong>. Faça login com uma conta de administrador para gerenciar módulos, aulas e vídeos.</p>' +
-        '<a href="login.html" class="btn btn-primary btn-sm">Entrar como administrador</a>' +
-      '</div>';
-    return false;
-  })()) {
-    var STORE = "tp_modulos";
+  if (gestaoRoot) {
     var ICONS = {
       video: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 8-6 4 6 4V8Z"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>',
       aula: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v13.5"/><path d="M4 19.5 12 16l8 3.5"/><path d="M9 8h6M9 12h6"/></svg>',
@@ -108,36 +96,18 @@
       "linear-gradient(135deg,var(--tp-green-700),var(--tp-blue-900))"
     ];
 
-    function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
-
-    function defaults() {
-      return [
-        { id: uid(), titulo: "Nível 1 · Novato", sub: "Fundamentos da proteção veicular e cultura da empresa", open: true, itens: [
-          { id: uid(), tipo: "video", titulo: "Boas-vindas e cultura Todos Protegidos", meta: "08:00", url: "", desc: "" },
-          { id: uid(), tipo: "info", titulo: "Benefícios (assistência 24h, FIPE, carro e moto)", meta: "Texto de apoio", url: "", desc: "" }
-        ] },
-        { id: uid(), titulo: "Nível 2 · Intermediário", sub: "Padrão de atendimento e abordagem", open: false, itens: [
-          { id: uid(), tipo: "aula", titulo: "Abordagem: formas e técnicas", meta: "5 modelos de abordagem", url: "", desc: "" }
-        ] },
-        { id: uid(), titulo: "Nível 3 · Avançado", sub: "Protocolos de venda, vistoria e objeções", open: false, itens: [
-          { id: uid(), tipo: "info", titulo: "Contorno de 10 objeções", meta: "Biblioteca de scripts", url: "", desc: "" },
-          { id: uid(), tipo: "file", titulo: "Checklist de vistoria", meta: "PDF", url: "", desc: "" }
-        ] },
-        { id: uid(), titulo: "Nível 4 · Pro", sub: "Gestão de carteira, pós-venda e mentoria", open: false, itens: [
-          { id: uid(), tipo: "info", titulo: "Reativação de inadimplentes", meta: "Scripts de voz e WhatsApp", url: "", desc: "" }
-        ] }
-      ];
-    }
-
-    function load() {
-      try { var d = JSON.parse(localStorage.getItem(STORE)); if (Array.isArray(d)) return d; } catch (e) {}
-      return defaults();
-    }
-    function save() { try { localStorage.setItem(STORE, JSON.stringify(modulos)); } catch (e) {} }
-
-    var modulos = load();
+    var modulos = [];
+    var openIds = {};
+    var addModuloBtn = document.getElementById("addModulo");
+    var resetBtn = document.getElementById("gestaoReset");
 
     function elt(html) { var d = document.createElement("div"); d.innerHTML = html.trim(); return d.firstChild; }
+
+    function reload() {
+      return TPData.listModules().then(function (list) { modulos = list || []; render(); }, function () {
+        gestaoRoot.innerHTML = '<div class="gestao-empty">Não foi possível carregar o conteúdo. Tente recarregar a página.</div>';
+      });
+    }
 
     function tagFor(i) { return TAGS[i % TAGS.length]; }
     function nTag(i) { return "M" + (i + 1); }
@@ -155,15 +125,14 @@
       row.querySelector(".t").textContent = (item.url ? "▶ " : "") + item.titulo;
       row.querySelector(".d").textContent = sub;
       row.querySelector(".ci-del").addEventListener("click", function () {
-        mod.itens = mod.itens.filter(function (it) { return it.id !== item.id; });
-        save(); render();
+        TPData.deleteItem(item.id).then(reload);
       });
       return row;
     }
 
     function renderModule(mod, i) {
       var card = document.createElement("section");
-      card.className = "level-card" + (mod.open ? " open" : "");
+      card.className = "level-card" + (openIds[mod.id] ? " open" : "");
 
       var head = elt(
         '<div class="level-head">' +
@@ -179,12 +148,11 @@
       head.querySelector(".lvl-info .d").textContent = mod.sub || "";
       head.addEventListener("click", function (e) {
         if (e.target.closest(".lvl-del")) return;
-        mod.open = !mod.open; card.classList.toggle("open", mod.open); save();
+        openIds[mod.id] = !openIds[mod.id]; card.classList.toggle("open", openIds[mod.id]);
       });
       head.querySelector(".lvl-del").addEventListener("click", function () {
         if (confirm("Excluir o módulo \"" + mod.titulo + "\" e todo o seu conteúdo?")) {
-          modulos = modulos.filter(function (m) { return m.id !== mod.id; });
-          save(); render();
+          TPData.deleteModule(mod.id).then(reload);
         }
       });
       card.appendChild(head);
@@ -239,8 +207,11 @@
         e.preventDefault();
         var get = function (k) { var el = form.querySelector('[data-f="' + k + '"]'); return el ? el.value.trim() : ""; };
         var titulo = get("title"); if (!titulo) return;
-        mod.itens.push({ id: uid(), tipo: current, titulo: titulo, meta: get("meta"), url: get("url"), desc: get("desc") });
-        mod.open = true; save(); render();
+        openIds[mod.id] = true;
+        TPData.addItem(mod.id, { tipo: current, titulo: titulo, meta: get("meta"), url: get("url"), desc: get("desc") }).then(function (r) {
+          if (r && r.ok === false) { alert(r.error || "Não foi possível adicionar."); return; }
+          reload();
+        });
       });
       body.appendChild(form);
 
@@ -257,25 +228,46 @@
       modulos.forEach(function (mod, i) { gestaoRoot.appendChild(renderModule(mod, i)); });
     }
 
-    var addModuloBtn = document.getElementById("addModulo");
     if (addModuloBtn) addModuloBtn.addEventListener("click", function () {
       var nome = prompt("Nome do módulo:", "Novo módulo");
       if (nome === null) return;
       nome = nome.trim(); if (!nome) return;
       var desc = prompt("Descrição do módulo (opcional):", "") || "";
-      modulos.push({ id: uid(), titulo: nome, sub: desc.trim(), open: true, itens: [] });
-      save(); render();
-      gestaoRoot.lastChild.scrollIntoView({ behavior: "smooth", block: "center" });
+      TPData.addModule(nome, desc.trim()).then(function (r) {
+        if (!r || r.ok === false) { alert((r && r.error) || "Não foi possível criar o módulo."); return; }
+        if (r.module) openIds[r.module.id] = true;
+        reload().then(function () {
+          if (gestaoRoot.lastChild && gestaoRoot.lastChild.scrollIntoView) gestaoRoot.lastChild.scrollIntoView({ behavior: "smooth", block: "center" });
+        });
+      });
     });
 
-    var resetBtn = document.getElementById("gestaoReset");
-    if (resetBtn) resetBtn.addEventListener("click", function () {
-      if (confirm("Restaurar a trilha padrão? As alterações salvas neste navegador serão perdidas.")) {
-        modulos = defaults(); save(); render();
-      }
-    });
+    if (resetBtn) {
+      if (TPData.configured()) { resetBtn.style.display = "none"; }
+      else resetBtn.addEventListener("click", function () {
+        if (confirm("Restaurar a trilha padrão? As alterações salvas neste navegador serão perdidas.")) {
+          TPData.resetModules().then(reload);
+        }
+      });
+    }
 
-    render();
+    function restrito() {
+      if (addModuloBtn) addModuloBtn.style.display = "none";
+      if (resetBtn) resetBtn.style.display = "none";
+      gestaoRoot.innerHTML =
+        '<div class="gestao-empty" style="padding:48px 32px">' +
+          '<div style="font-family:var(--tp-font-sans);font-weight:800;font-size:var(--tp-fs-xl);color:var(--tp-ink);margin-bottom:8px">Acesso restrito</div>' +
+          '<p style="max-width:42ch;margin:0 auto 18px">Esta área é exclusiva para <strong>administradores</strong>. Faça login com uma conta de administrador para gerenciar módulos, aulas e vídeos.</p>' +
+          '<a href="login.html" class="btn btn-primary btn-sm">Entrar como administrador</a>' +
+        '</div>';
+    }
+
+    // Carrega após checar a sessão (somente admin)
+    gestaoRoot.innerHTML = '<div class="gestao-empty">Carregando…</div>';
+    TPData.session().then(function (sess) {
+      if (!(sess && sess.role === "admin")) { restrito(); return; }
+      reload();
+    }, function () { restrito(); });
   }
 
   // ---- Avaliação / quiz + certificado ----
@@ -375,29 +367,23 @@
       if (senha !== senha2) return showMsg("As senhas não conferem.", false);
       if (termos && !termos.checked) return showMsg("É preciso aceitar os termos para continuar.", false);
 
-      var consultores = [];
-      try { consultores = JSON.parse(localStorage.getItem("tp_consultores") || "[]"); } catch (err) {}
-      if (consultores.some(function (c) { return c.email === email; })) {
-        return showMsg("Já existe um acesso com esse e-mail. Tente entrar.", false);
-      }
-
-      var conta = { nome: nome, email: email, telefone: telefone, senha: senha, role: "consultor", criadoEm: new Date().toISOString() };
-      consultores.push(conta);
-      try {
-        localStorage.setItem("tp_consultores", JSON.stringify(consultores));
-        localStorage.setItem("tp_sessao", JSON.stringify({ nome: nome, email: email, role: "consultor" }));
-      } catch (err) {}
-
-      showMsg("Acesso criado com sucesso! Redirecionando para a plataforma…", true);
-      cadastroForm.querySelector('button[type="submit"]').disabled = true;
-      setTimeout(function () { window.location.href = "dashboard.html"; }, 1400);
+      var btn = cadastroForm.querySelector('button[type="submit"]');
+      btn.disabled = true;
+      TPData.register({ nome: nome, email: email, telefone: telefone, senha: senha }).then(function (r) {
+        if (!r.ok) { btn.disabled = false; return showMsg(r.error || "Não foi possível criar o acesso.", false); }
+        if (r.needsConfirm) {
+          showMsg("Acesso criado! Confirme o e-mail enviado e depois faça login.", true);
+          return setTimeout(function () { window.location.href = "login.html"; }, 2400);
+        }
+        showMsg("Acesso criado com sucesso! Redirecionando para a plataforma…", true);
+        setTimeout(function () { window.location.href = "dashboard.html"; }, 1400);
+      }, function () { btn.disabled = false; showMsg("Erro de conexão. Tente novamente.", false); });
     });
   }
 
   // ---- Login (consultor + administrador) ----
   var loginForm = document.getElementById("loginForm");
   if (loginForm) {
-    var ADMIN = { user: "admin", senha: "admin2026" };
     var lmsg = document.getElementById("loginMsg");
     function lShow(text, ok) {
       lmsg.textContent = text;
@@ -407,25 +393,16 @@
       e.preventDefault();
       var user = (document.getElementById("login").value || "").trim();
       var pass = document.getElementById("senha").value || "";
-      var ukey = user.toLowerCase();
+      if (!user || !pass) return lShow("Preencha usuário e senha.", false);
 
-      if (ukey === ADMIN.user && pass === ADMIN.senha) {
-        try { localStorage.setItem("tp_sessao", JSON.stringify({ nome: "Administrador", email: "admin", role: "admin" })); } catch (err) {}
-        lShow("Bem-vindo, Administrador! Redirecionando…", true);
-        loginForm.querySelector('button[type="submit"]').disabled = true;
-        return setTimeout(function () { window.location.href = "dashboard.html"; }, 1000);
-      }
-
-      var consultores = [];
-      try { consultores = JSON.parse(localStorage.getItem("tp_consultores") || "[]"); } catch (err) {}
-      var conta = consultores.filter(function (c) { return c.email === ukey && c.senha === pass; })[0];
-      if (conta) {
-        try { localStorage.setItem("tp_sessao", JSON.stringify({ nome: conta.nome, email: conta.email, role: "consultor" })); } catch (err) {}
-        lShow("Acesso liberado! Redirecionando…", true);
-        loginForm.querySelector('button[type="submit"]').disabled = true;
-        return setTimeout(function () { window.location.href = "dashboard.html"; }, 1000);
-      }
-      lShow("Usuário ou senha inválidos. Verifique e tente novamente.", false);
+      var btn = loginForm.querySelector('button[type="submit"]');
+      btn.disabled = true;
+      TPData.login(user, pass).then(function (r) {
+        if (!r.ok) { btn.disabled = false; return lShow(r.error || "Usuário ou senha inválidos.", false); }
+        var nome = (r.session && r.session.nome) || "";
+        lShow((r.session && r.session.role === "admin") ? "Bem-vindo, Administrador! Redirecionando…" : ("Acesso liberado" + (nome ? ", " + nome.split(" ")[0] : "") + "! Redirecionando…"), true);
+        setTimeout(function () { window.location.href = "dashboard.html"; }, 1000);
+      }, function () { btn.disabled = false; lShow("Erro de conexão. Tente novamente.", false); });
     });
   }
 
@@ -434,13 +411,14 @@
     var chip = document.querySelector(".user-chip");
     if (!chip) return;
     chip.style.marginLeft = "auto";
-    var s = getSessao();
-    if (s && s.nome) {
+    function apply(s) {
+      if (!s || !s.nome) return;
       var nm = chip.querySelector(".nm"); if (nm) nm.textContent = s.nome;
       var rl = chip.querySelector(".rl"); if (rl) rl.textContent = s.role === "admin" ? "Administrador" : "Consultor";
       var av = chip.querySelector(".avatar");
       if (av) av.textContent = s.nome.split(/\s+/).map(function (w) { return w.charAt(0); }).slice(0, 2).join("").toUpperCase();
     }
+    if (window.TPData) TPData.session().then(apply, function () {});
     if (!chip.parentNode.querySelector("[data-logout]")) {
       var out = document.createElement("button");
       out.className = "btn btn-ghost btn-sm";

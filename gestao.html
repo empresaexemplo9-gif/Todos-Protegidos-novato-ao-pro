@@ -70,7 +70,7 @@
           <div>
             <div class="crumb"><a href="dashboard.html">Visão geral</a> · Gestão de conteúdo</div>
             <h2 style="margin:0">Trilha de formação — módulos, aulas e vídeos</h2>
-            <p class="mb-0 muted">Crie módulos e adicione aulas, vídeos, informações e materiais. Tudo fica salvo neste navegador — pronto como espaço para o conteúdo que será implementado.</p>
+            <p class="mb-0 muted">Crie módulos e adicione aulas, vídeos, informações e materiais. O conteúdo fica salvo no sistema — pronto como espaço para o que será implementado.</p>
           </div>
           <div style="display:flex;gap:10px;flex-wrap:wrap">
             <button class="btn btn-ghost btn-sm" id="gestaoReset">Restaurar padrão</button>
@@ -78,12 +78,18 @@
           </div>
         </div>
 
-        <!-- Conteúdo gerenciado dinamicamente (persistido em localStorage) -->
+        <!-- Conteúdo gerenciado dinamicamente (Supabase quando configurado; senão local) -->
         <div id="gestaoRoot" style="display:grid;gap:16px"></div>
 
       </main>
     </div>
   </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script src="assets/js/config.js"></script>
+
+  <script src="assets/js/api.js"></script>
 
   <script src="assets/js/app.js"></script>
 </body>
