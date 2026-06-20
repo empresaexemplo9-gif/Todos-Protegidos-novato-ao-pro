@@ -184,6 +184,26 @@
     deleteCliente: function (id) {
       lsSet("tp_clientes", lsGet("tp_clientes", []).filter(function (c) { return c.id !== id; }));
       return Promise.resolve({ ok: true });
+    },
+
+    listVendas: function () {
+      var v = lsGet("tp_vendas", []);
+      return Promise.resolve(v.slice().sort(function (a, b) { return (b.data || "").localeCompare(a.data || ""); }));
+    },
+    addVenda: function (d) {
+      var arr = lsGet("tp_vendas", []);
+      var v = { id: uid(), cliente_id: d.cliente_id || null, cliente_nome: d.cliente_nome || "", veiculo: d.veiculo || "", plano: d.plano || "", valor: Number(d.valor) || 0, comissao: Number(d.comissao) || 0, status: d.status || "ativa", data: d.data || new Date().toISOString().slice(0, 10), criado_em: new Date().toISOString() };
+      arr.unshift(v); lsSet("tp_vendas", arr);
+      return Promise.resolve({ ok: true, venda: v });
+    },
+    updateVenda: function (id, d) {
+      var arr = lsGet("tp_vendas", []);
+      arr.forEach(function (v) { if (v.id === id) { v.cliente_id = d.cliente_id || null; v.cliente_nome = d.cliente_nome; v.veiculo = d.veiculo; v.plano = d.plano; v.valor = Number(d.valor) || 0; v.comissao = Number(d.comissao) || 0; v.status = d.status; v.data = d.data; } });
+      lsSet("tp_vendas", arr); return Promise.resolve({ ok: true });
+    },
+    deleteVenda: function (id) {
+      lsSet("tp_vendas", lsGet("tp_vendas", []).filter(function (v) { return v.id !== id; }));
+      return Promise.resolve({ ok: true });
     }
   };
 
@@ -338,6 +358,29 @@
     deleteCliente: function (id) {
       return sb.from("clientes").delete().eq("id", id)
         .then(function (res) { return res.error ? { ok: false, error: traduzErro(res.error.message) } : { ok: true }; });
+    },
+
+    listVendas: function () {
+      return sb.auth.getUser().then(function (r) {
+        var u = r.data && r.data.user; if (!u) return [];
+        return sb.from("vendas").select("*").eq("user_id", u.id).order("data", { ascending: false })
+          .then(function (res) { if (res.error) throw res.error; return res.data || []; });
+      });
+    },
+    addVenda: function (d) {
+      return sb.auth.getUser().then(function (r) {
+        var u = r.data && r.data.user; if (!u) return { ok: false, error: "Sessão expirada." };
+        return sb.from("vendas").insert({ user_id: u.id, cliente_id: d.cliente_id || null, cliente_nome: d.cliente_nome, veiculo: d.veiculo, plano: d.plano, valor: Number(d.valor) || 0, comissao: Number(d.comissao) || 0, status: d.status || "ativa", data: d.data }).select().single()
+          .then(function (res) { return res.error ? { ok: false, error: traduzErro(res.error.message) } : { ok: true, venda: res.data }; });
+      });
+    },
+    updateVenda: function (id, d) {
+      return sb.from("vendas").update({ cliente_id: d.cliente_id || null, cliente_nome: d.cliente_nome, veiculo: d.veiculo, plano: d.plano, valor: Number(d.valor) || 0, comissao: Number(d.comissao) || 0, status: d.status, data: d.data }).eq("id", id)
+        .then(function (res) { return res.error ? { ok: false, error: traduzErro(res.error.message) } : { ok: true }; });
+    },
+    deleteVenda: function (id) {
+      return sb.from("vendas").delete().eq("id", id)
+        .then(function (res) { return res.error ? { ok: false, error: traduzErro(res.error.message) } : { ok: true }; });
     }
   };
 
@@ -369,6 +412,10 @@
     listClientes: function () { return impl.listClientes(); },
     addCliente: function (d) { return impl.addCliente(d); },
     updateCliente: function (id, d) { return impl.updateCliente(id, d); },
-    deleteCliente: function (id) { return impl.deleteCliente(id); }
+    deleteCliente: function (id) { return impl.deleteCliente(id); },
+    listVendas: function () { return impl.listVendas(); },
+    addVenda: function (d) { return impl.addVenda(d); },
+    updateVenda: function (id, d) { return impl.updateVenda(id, d); },
+    deleteVenda: function (id) { return impl.deleteVenda(id); }
   };
 })();

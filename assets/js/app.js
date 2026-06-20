@@ -836,6 +836,130 @@
     } else { cReload(); }
   }
 
+  // ---- Helpers de vendas (compartilhados: página de vendas + dashboard) ----
+  var V_STATUS = { ativa: "Ativa", pendente: "Pendente", cancelada: "Cancelada" };
+  function vBRL(n) { n = Number(n) || 0; return "R$ " + n.toFixed(2).replace(".", ","); }
+  function vEsc(s) { return (s == null ? "" : String(s)).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+  function vStatusBadge(s) { return s === "ativa" ? "badge" : s === "cancelada" ? "badge badge-danger" : "badge badge-amber"; }
+  function vIsMonth(dateStr, d) { d = d || new Date(); return !!dateStr && String(dateStr).slice(0, 7) === (d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2)); }
+  function vDateBR(s) { if (!s) return "—"; var p = String(s).slice(0, 10).split("-"); return p.length === 3 ? p[2] + "/" + p[1] + "/" + p[0] : s; }
+
+  // ---- Minhas vendas: CRUD (Supabase/local) ----
+  var vendasRoot = document.getElementById("vendasRoot");
+  if (vendasRoot) {
+    var V_EDIT = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
+    var V_TRASH = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>';
+    var vendas = [], vClientes = [];
+    var addVendaBtn = document.getElementById("addVenda");
+
+    function vEmpty(msg) { vendasRoot.innerHTML = '<div class="gestao-empty">' + msg + '</div>'; }
+    function vFind(id) { return vendas.filter(function (v) { return v.id === id; })[0]; }
+    function vKpi(lbl, val) { return '<div class="kpi"><div class="val" style="font-size:var(--tp-fs-2xl)">' + val + '</div><div class="lbl">' + lbl + '</div></div>'; }
+    function vFieldI(label, name, val, type) { return '<label class="m-field"><span>' + label + '</span><input name="' + name + '" type="' + (type || "text") + '"' + (type === "number" ? ' step="0.01" min="0"' : '') + ' value="' + vEsc(val) + '"></label>'; }
+
+    function vRender() {
+      var now = new Date(), comMes = 0, qtdMes = 0, comTotal = 0;
+      vendas.forEach(function (v) {
+        if (v.status === "cancelada") return;
+        comTotal += Number(v.comissao) || 0;
+        if (vIsMonth(v.data, now)) { comMes += Number(v.comissao) || 0; qtdMes++; }
+      });
+      var cards = '<div class="v-summary">' + vKpi("Comissão no mês", vBRL(comMes)) + vKpi("Vendas no mês", String(qtdMes)) + vKpi("Comissão total", vBRL(comTotal)) + '</div>';
+      var body;
+      if (!vendas.length) {
+        body = '<div class="gestao-empty">Nenhuma venda registrada. Clique em <strong>“+ Nova venda”</strong> para começar.</div>';
+      } else {
+        var rows = vendas.map(function (v) {
+          return '<tr><td>' + vDateBR(v.data) + '</td><td style="font-weight:600">' + (vEsc(v.cliente_nome) || "—") + '</td><td>' + (vEsc(v.plano) || "—") + '</td><td>' + (vEsc(v.veiculo) || "—") + '</td><td>' + vBRL(v.comissao) + '</td><td><span class="' + vStatusBadge(v.status) + '">' + (V_STATUS[v.status] || "—") + '</span></td><td style="text-align:right;white-space:nowrap"><button class="icon-btn-sm" data-vedit="' + v.id + '" aria-label="Editar">' + V_EDIT + '</button> <button class="icon-btn-sm" data-vdel="' + v.id + '" aria-label="Excluir">' + V_TRASH + '</button></td></tr>';
+        }).join("");
+        body = '<div class="card" style="padding:6px"><div class="table-wrap"><table class="table"><thead><tr><th>Data</th><th>Cliente</th><th>Plano</th><th>Veículo</th><th>Comissão</th><th>Status</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div></div>';
+      }
+      vendasRoot.innerHTML = cards + body;
+      Array.prototype.forEach.call(vendasRoot.querySelectorAll("[data-vedit]"), function (b) { b.addEventListener("click", function () { vForm(vFind(b.getAttribute("data-vedit"))); }); });
+      Array.prototype.forEach.call(vendasRoot.querySelectorAll("[data-vdel]"), function (b) { b.addEventListener("click", function () { vDel(vFind(b.getAttribute("data-vdel"))); }); });
+    }
+
+    function vForm(v) {
+      var editing = !!v; v = v || {};
+      var opts = '<option value="">— Cliente avulso / digite abaixo —</option>' + vClientes.map(function (c) { return '<option value="' + c.id + '"' + (v.cliente_id === c.id ? " selected" : "") + '>' + vEsc(c.nome) + '</option>'; }).join("");
+      var ov = document.createElement("div"); ov.className = "modal-overlay";
+      ov.innerHTML = '<div class="modal" role="dialog" aria-modal="true"><h3 style="margin:0">' + (editing ? "Editar venda" : "Nova venda") + '</h3>' +
+        '<form class="m-form">' +
+          '<label class="m-field"><span>Cliente</span><select name="cliente_id">' + opts + '</select></label>' +
+          vFieldI("Nome do cliente*", "cliente_nome", v.cliente_nome) +
+          '<div class="m-row">' + vFieldI("Plano", "plano", v.plano) + vFieldI("Veículo", "veiculo", v.veiculo) + '</div>' +
+          '<div class="m-row">' + vFieldI("Valor (R$)", "valor", v.valor, "number") + vFieldI("Comissão (R$)", "comissao", v.comissao, "number") + '</div>' +
+          '<div class="m-row"><label class="m-field"><span>Status</span><select name="status">' + ["ativa", "pendente", "cancelada"].map(function (s) { return '<option value="' + s + '"' + (v.status === s ? " selected" : "") + '>' + V_STATUS[s] + '</option>'; }).join("") + '</select></label>' + vFieldI("Data", "data", (v.data ? String(v.data).slice(0, 10) : new Date().toISOString().slice(0, 10)), "date") + '</div>' +
+          '<div class="m-msg" hidden></div>' +
+          '<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:4px"><button type="button" class="btn btn-ghost btn-sm" data-cancel>Cancelar</button><button type="submit" class="btn btn-primary btn-sm">' + (editing ? "Salvar" : "Adicionar") + '</button></div>' +
+        '</form></div>';
+      document.body.appendChild(ov); document.body.classList.add("nav-locked");
+      function close() { ov.parentNode && ov.parentNode.removeChild(ov); document.body.classList.remove("nav-locked"); }
+      ov.addEventListener("click", function (e) { if (e.target === ov) close(); });
+      ov.querySelector("[data-cancel]").addEventListener("click", close);
+      var form = ov.querySelector(".m-form");
+      var sel = form.querySelector('[name="cliente_id"]'), nameF = form.querySelector('[name="cliente_nome"]');
+      sel.addEventListener("change", function () { var c = vClientes.filter(function (x) { return x.id === sel.value; })[0]; if (c) nameF.value = c.nome; });
+      function msg(t) { var m = form.querySelector(".m-msg"); m.textContent = t; m.hidden = false; }
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        var d = {};
+        Array.prototype.forEach.call(form.querySelectorAll("[name]"), function (el) { d[el.name] = (el.value || "").trim(); });
+        if (!d.cliente_nome) return msg("Informe o nome do cliente.");
+        var btn = form.querySelector('[type="submit"]'); btn.disabled = true;
+        var p = editing ? TPData.updateVenda(v.id, d) : TPData.addVenda(d);
+        p.then(function (res) { btn.disabled = false; if (res && res.ok === false) return msg(res.error || "Não foi possível salvar."); close(); vReload(); }, function () { btn.disabled = false; msg("Erro de conexão. Tente novamente."); });
+      });
+    }
+
+    function vDel(v) { if (!v) return; if (!window.confirm('Excluir esta venda de "' + v.cliente_nome + '"? Esta ação não pode ser desfeita.')) return; TPData.deleteVenda(v.id).then(vReload); }
+    function vReload() {
+      vEmpty("Carregando vendas…");
+      return Promise.all([TPData.listVendas(), TPData.listClientes()]).then(function (r) { vendas = r[0] || []; vClientes = r[1] || []; vRender(); },
+        function () { vEmpty('Não foi possível carregar suas vendas. Se as tabelas ainda não existem no Supabase, rode <code>db/migrations.sql</code> no SQL Editor.'); });
+    }
+    if (addVendaBtn) addVendaBtn.addEventListener("click", function () { vForm(null); });
+    if (window.TPData) { TPData.session().then(function (s) { if (!s) { window.location.href = "login.html"; return; } vReload(); }, function () { vReload(); }); } else { vReload(); }
+  }
+
+  // ---- Dashboard: KPIs + vendas recentes + gráfico semanal ----
+  var vendasRecentesEl = document.getElementById("vendasRecentes");
+  if (vendasRecentesEl && window.TPData && TPData.listVendas) {
+    var dSet = function (id, txt) { var el = document.getElementById(id); if (el) el.textContent = txt; };
+    TPData.listVendas().then(function (list) {
+      var vlist = list || [], now = new Date(), comMes = 0, ativos = 0, qtdMes = 0;
+      vlist.forEach(function (v) {
+        if (v.status === "ativa") ativos++;
+        if (v.status !== "cancelada" && vIsMonth(v.data, now)) { comMes += Number(v.comissao) || 0; qtdMes++; }
+      });
+      dSet("kpiComissao", vBRL(comMes));
+      dSet("kpiVeiculos", String(ativos));
+      dSet("realizadoVendas", qtdMes + (qtdMes === 1 ? " venda" : " vendas"));
+      if (!vlist.length) {
+        vendasRecentesEl.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--tp-muted);padding:28px 12px">Nenhuma venda registrada ainda. <a href="vendas.html">Registrar venda</a>.</td></tr>';
+      } else {
+        vendasRecentesEl.innerHTML = vlist.slice(0, 6).map(function (v) {
+          return '<tr><td style="font-weight:600">' + (vEsc(v.cliente_nome) || "—") + '</td><td>' + (vEsc(v.plano) || "—") + '</td><td>' + (vEsc(v.veiculo) || "—") + '</td><td>' + vBRL(v.comissao) + '</td><td><span class="' + vStatusBadge(v.status) + '">' + (V_STATUS[v.status] || "—") + '</span></td></tr>';
+        }).join("");
+      }
+      var chart = document.getElementById("vendasChart");
+      if (chart) {
+        var weeks = [0, 0, 0, 0, 0];
+        vlist.forEach(function (v) {
+          if (v.status === "cancelada" || !vIsMonth(v.data, now)) return;
+          var day = parseInt(String(v.data).slice(8, 10), 10) || 1;
+          weeks[Math.min(4, Math.floor((day - 1) / 7))]++;
+        });
+        var max = Math.max.apply(null, weeks.concat([1]));
+        chart.innerHTML = weeks.map(function (n, i) {
+          return '<div class="bar-col"><div class="bar' + (i === 4 ? " alt" : "") + '" style="height:' + Math.round((n / max) * 100) + '%"></div><span class="bar-lbl">S' + (i + 1) + '</span></div>';
+        }).join("");
+      }
+    }, function () {
+      vendasRecentesEl.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--tp-muted);padding:20px 12px">Vendas indisponíveis (rode <code>db/migrations.sql</code> no Supabase).</td></tr>';
+    });
+  }
+
   // ---- Reflete a sessão (nome/perfil) e injeta o botão "Sair" ----
   (function () {
     var chip = document.querySelector(".user-chip");

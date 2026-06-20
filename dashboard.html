@@ -46,12 +46,12 @@
         <section class="kpis">
           <div class="kpi">
             <div class="kpi-top"><div class="kpi-ico green"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div></div>
-            <div class="val">R$ 0</div>
+            <div class="val" id="kpiComissao">R$ 0</div>
             <div class="lbl">Comissão no mês</div>
           </div>
           <div class="kpi">
             <div class="kpi-top"><div class="kpi-ico blue"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.4 8.5 8 10 4.6-1.5 8-5 8-10V5l-8-3Z"/><path d="M9 12l2 2 4-4"/></svg></div></div>
-            <div class="val">0</div>
+            <div class="val" id="kpiVeiculos">0</div>
             <div class="lbl">Veículos protegidos</div>
           </div>
           <div class="kpi">
@@ -61,7 +61,7 @@
           </div>
           <div class="kpi">
             <div class="kpi-top"><div class="kpi-ico dark"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8 12 2.5 2.5L16 9"/></svg></div></div>
-            <div class="val">—</div>
+            <div class="val" id="kpiConv">—</div>
             <div class="lbl">Taxa de conversão</div>
           </div>
         </section>
@@ -76,7 +76,7 @@
             <div class="panel" id="trilha">
               <div class="panel-head">
                 <h3>Trilha de treinamento · do novato ao pro</h3>
-                <a href="#">Ver tudo</a>
+                <a href="aula.html">Ver tudo</a>
               </div>
               <div class="track" id="trilhaLista">
                 <div class="gestao-empty" style="padding:24px">Carregando trilha…</div>
@@ -87,16 +87,18 @@
             <div class="panel">
               <div class="panel-head">
                 <h3>Vendas recentes</h3>
-                <a href="#">Relatório completo</a>
+                <a href="vendas.html">Relatório completo</a>
               </div>
+              <div class="table-wrap">
               <table class="table">
                 <thead><tr><th>Cliente</th><th>Plano</th><th>Veículo</th><th>Comissão</th><th>Status</th></tr></thead>
-                <tbody>
+                <tbody id="vendasRecentes">
                   <tr>
-                    <td colspan="5" style="text-align:center;color:var(--tp-muted);padding:28px 12px">Nenhuma venda registrada ainda.</td>
+                    <td colspan="5" style="text-align:center;color:var(--tp-muted);padding:28px 12px">Carregando vendas…</td>
                   </tr>
                 </tbody>
               </table>
+              </div>
             </div>
           </div>
 
@@ -109,7 +111,7 @@
                 <h3>Vendas por semana</h3>
                 <span class="badge">Junho</span>
               </div>
-              <div class="chart">
+              <div class="chart" id="vendasChart">
                 <div class="bar-col"><div class="bar" style="height:0%"></div><span class="bar-lbl">S1</span></div>
                 <div class="bar-col"><div class="bar" style="height:0%"></div><span class="bar-lbl">S2</span></div>
                 <div class="bar-col"><div class="bar" style="height:0%"></div><span class="bar-lbl">S3</span></div>
@@ -118,7 +120,7 @@
               </div>
               <div style="display:flex;justify-content:space-between;margin-top:16px;padding-top:16px;border-top:1px solid var(--tp-line)">
                 <div><div class="lbl muted" style="font-size:var(--tp-fs-xs)">Meta do mês</div><strong style="font-family:var(--tp-font-sans)">—</strong></div>
-                <div style="text-align:right"><div class="lbl muted" style="font-size:var(--tp-fs-xs)">Realizado</div><strong style="font-family:var(--tp-font-sans);color:var(--tp-green-700)">0 vendas</strong></div>
+                <div style="text-align:right"><div class="lbl muted" style="font-size:var(--tp-fs-xs)">Realizado</div><strong id="realizadoVendas" style="font-family:var(--tp-font-sans);color:var(--tp-green-700)">0 vendas</strong></div>
               </div>
             </div>
 
