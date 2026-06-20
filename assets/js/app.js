@@ -289,6 +289,92 @@
     }, function () { restrito(); });
   }
 
+  // ---- Trilha resumida no dashboard (lê módulos do backend) ----
+  var trilhaLista = document.getElementById("trilhaLista");
+  if (trilhaLista) {
+    var escT = function (s) { var d = document.createElement("div"); d.textContent = s == null ? "" : s; return d.innerHTML; };
+    TPData.listModules().then(function (mods) {
+      mods = mods || [];
+      if (!mods.length) {
+        trilhaLista.innerHTML = '<div class="gestao-empty" style="padding:28px">Sua trilha aparece aqui assim que a gestão publicar os módulos.<div style="margin-top:12px"><a class="btn btn-primary btn-sm" href="gestao.html">Ir para a gestão</a></div></div>';
+        return;
+      }
+      var html = "";
+      mods.forEach(function (m) {
+        var n = (m.itens || []).length;
+        html += '<div class="track-item"><div class="track-step current">' + n + '</div>' +
+          '<div class="track-body"><div class="t">' + escT(m.titulo) + '</div><div class="d">' + escT(m.sub || "") + (m.sub ? " · " : "") + n + ' ' + (n === 1 ? "item" : "itens") + '</div></div>';
+        var firstVid = (m.itens || []).filter(function (it) { return it.tipo === "aula" || it.tipo === "video"; })[0];
+        if (firstVid) html += '<a class="btn btn-primary btn-sm" href="aula.html?item=' + encodeURIComponent(firstVid.id) + '">Assistir</a>';
+        else html += '<a class="btn btn-ghost btn-sm" href="aula.html">Abrir</a>';
+        html += '</div>';
+      });
+      trilhaLista.innerHTML = html;
+    }, function () { trilhaLista.innerHTML = '<div class="gestao-empty" style="padding:24px">Não foi possível carregar a trilha.</div>'; });
+  }
+
+  // ---- Player da trilha (consultor) ----
+  var playerApp = document.getElementById("playerApp");
+  if (playerApp) {
+    var esc = function (s) { var d = document.createElement("div"); d.textContent = s == null ? "" : s; return d.innerHTML; };
+    var TYPELBL = { aula: "Aula", video: "Vídeo", info: "Informação", file: "Material" };
+    function isPlayable(it) { return it.tipo === "aula" || it.tipo === "video"; }
+    function embed(url) {
+      var box = "position:relative;aspect-ratio:16/9;border-radius:var(--tp-radius-lg);overflow:hidden;background:#000;box-shadow:var(--tp-shadow)";
+      var fill = "position:absolute;inset:0;width:100%;height:100%;border:0";
+      if (!url) return '<div class="video"><div class="meta"><span class="badge">Sem vídeo nesta aula</span></div></div>';
+      var yt = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([\w-]{11})/);
+      if (yt) return '<div style="' + box + '"><iframe style="' + fill + '" src="https://www.youtube.com/embed/' + yt[1] + '" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>';
+      var vm = url.match(/vimeo\.com\/(\d+)/);
+      if (vm) return '<div style="' + box + '"><iframe style="' + fill + '" src="https://player.vimeo.com/video/' + vm[1] + '" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe></div>';
+      return '<div style="' + box + '"><video controls preload="metadata" style="' + fill + '" src="' + esc(url).replace(/"/g, "%22") + '"></video></div>';
+    }
+    function flatten(mods) { var l = []; mods.forEach(function (m) { (m.itens || []).forEach(function (it) { l.push({ mod: m, item: it }); }); }); return l; }
+
+    function renderPlayer(mods, currentId) {
+      var flat = flatten(mods);
+      if (!flat.length) { playerApp.innerHTML = '<div class="gestao-empty" style="padding:48px">Nenhuma aula publicada ainda. Assim que a gestão adicionar conteúdo, ele aparece aqui.</div>'; return; }
+      var sel = null;
+      flat.forEach(function (e) { if (e.item.id === currentId) sel = e; });
+      if (!sel) sel = flat.filter(function (e) { return isPlayable(e.item); })[0] || flat[0];
+
+      var html = '<div class="crumb" style="font-size:var(--tp-fs-sm);color:var(--tp-muted);margin-bottom:14px"><a href="dashboard.html" style="color:var(--tp-muted)">Visão geral</a> · ' + esc(sel.mod.titulo) + '</div>';
+      html += '<div class="lesson-grid"><div>';
+      if (isPlayable(sel.item)) html += embed(sel.item.url);
+      else html += '<div class="video"><div class="meta"><span class="badge">' + esc(TYPELBL[sel.item.tipo] || "Conteúdo") + '</span></div></div>';
+      html += '<div class="lesson-body">';
+      html += '<span class="badge badge-amber" style="margin-top:18px">' + esc(sel.mod.titulo) + '</span>';
+      html += '<h2>' + esc(sel.item.titulo) + '</h2>';
+      html += '<p class="muted">' + (sel.item.desc ? esc(sel.item.desc) : (sel.item.meta ? esc(sel.item.meta) : "—")) + '</p>';
+      if (sel.item.url && !isPlayable(sel.item)) html += '<div class="lesson-actions"><a class="btn btn-primary" href="' + esc(sel.item.url).replace(/"/g, "%22") + '" target="_blank" rel="noopener">Abrir material</a></div>';
+      html += '</div></div>';
+
+      html += '<aside class="playlist">';
+      mods.forEach(function (m) {
+        if (!(m.itens || []).length) return;
+        html += '<div class="playlist-head"><h3>' + esc(m.titulo) + '</h3><div class="d">' + m.itens.length + ' ' + (m.itens.length === 1 ? "item" : "itens") + '</div></div>';
+        m.itens.forEach(function (it) {
+          var active = it.id === sel.item.id ? " active" : "";
+          var ico = isPlayable(it)
+            ? '<span class="ic now"><svg width="14" height="14" viewBox="0 0 24 24" fill="#081042"><path d="M8 5v14l11-7z"/></svg></span>'
+            : '<span class="ic next">•</span>';
+          html += '<a class="lesson' + active + '" href="aula.html?item=' + encodeURIComponent(it.id) + '" style="text-decoration:none;color:inherit">' + ico + '<div class="t">' + esc(it.titulo) + '<small>' + esc(TYPELBL[it.tipo] || "") + (it.meta ? " · " + esc(it.meta) : "") + '</small></div></a>';
+        });
+      });
+      html += '<a class="lesson" href="quiz.html" style="text-decoration:none;color:inherit"><span class="ic next">★</span><div class="t">Avaliação do módulo<small>Quiz · libera certificado</small></div></a>';
+      html += '</aside></div>';
+      playerApp.innerHTML = html;
+    }
+
+    var wantId = new URLSearchParams(location.search).get("item");
+    TPData.session().then(function (s) {
+      if (!s) { window.location.href = "login.html"; return; }
+      TPData.listModules().then(function (mods) { renderPlayer(mods || [], wantId); }, function () {
+        playerApp.innerHTML = '<div class="gestao-empty" style="padding:40px">Não foi possível carregar as aulas. Recarregue a página.</div>';
+      });
+    }, function () { window.location.href = "login.html"; });
+  }
+
   // ---- Avaliação / quiz + certificado ----
   var quizForm = document.getElementById("quizForm");
   if (quizForm) {
