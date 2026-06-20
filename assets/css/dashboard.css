@@ -10,6 +10,7 @@ body.dash { background: var(--tp-bg); }
 .sidebar {
   background: var(--tp-side-bg, #081042); color: var(--tp-side-fg, #c8d8cf);
   padding: 22px 18px; position: sticky; top: 0; height: 100vh;
+  overflow-y: auto; overscroll-behavior: contain;
   display: flex; flex-direction: column; gap: 8px;
 }
 .sidebar .brand img { height: 44px; }
