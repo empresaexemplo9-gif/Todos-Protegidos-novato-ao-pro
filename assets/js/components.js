@@ -41,7 +41,7 @@
       { id: "gestao",     label: "Gestão de conteúdo",    href: "gestao.html",    icon: "edit", match: ["gestao.html", "prova.html"], roles: ["admin", "superadmin"] }
     ] },
     { section: "Carreira", items: [
-      { id: "ranking", label: "Ranking & metas", href: "dashboard.html#ranking", icon: "trophy", state: "soon" },
+      { id: "ranking", label: "Ranking & metas", href: "ranking.html",            icon: "trophy", match: ["ranking.html"] },
       { id: "cert",    label: "Certificações",   href: "certificacoes.html",     icon: "medal",  match: ["certificacoes.html"] },
       { id: "conta",   label: "Minha conta",     href: "conta.html",             icon: "gear",   match: ["conta.html"] }
     ] }
