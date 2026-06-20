@@ -19,22 +19,14 @@
   // Liga botões "Sair" estáticos (páginas sem topbar)
   Array.prototype.forEach.call(document.querySelectorAll("[data-logout]"), function (b) { b.addEventListener("click", logout); });
 
-  // Menu mobile (landing)
+  // Menu mobile (landing) — alterna só a classe; o visual fica no CSS (.nav-links.nav-open)
   var toggle = document.querySelector(".nav-toggle");
   var links = document.querySelector(".nav-links");
   if (toggle && links) {
+    toggle.setAttribute("aria-expanded", "false");
     toggle.addEventListener("click", function () {
       var open = links.classList.toggle("nav-open");
-      links.style.display = open ? "flex" : "";
-      links.style.flexDirection = "column";
-      links.style.position = "absolute";
-      links.style.top = "74px";
-      links.style.left = "0";
-      links.style.right = "0";
-      links.style.background = "#fff";
-      links.style.padding = open ? "16px 24px" : "";
-      links.style.borderBottom = open ? "1px solid var(--tp-line)" : "";
-      links.style.gap = "8px";
+      toggle.setAttribute("aria-expanded", open ? "true" : "false");
     });
   }
 
@@ -73,17 +65,34 @@
     refresh();
   }
 
-  // ---- Player de aula: abas ----
+  // ---- Abas (scripts / aula) com ARIA + teclado ----
   var tabs = document.querySelectorAll(".tab[data-tab]");
   if (tabs.length) {
-    tabs.forEach(function (tab) {
-      tab.addEventListener("click", function () {
-        var name = tab.getAttribute("data-tab");
-        tabs.forEach(function (t) { t.classList.remove("active"); });
-        tab.classList.add("active");
-        document.querySelectorAll(".tab-panel").forEach(function (p) {
-          p.classList.toggle("active", p.getAttribute("data-panel") === name);
-        });
+    var selectTab = function (tab) {
+      var name = tab.getAttribute("data-tab");
+      tabs.forEach(function (t) {
+        var on = t === tab;
+        t.classList.toggle("active", on);
+        t.setAttribute("aria-selected", on ? "true" : "false");
+        t.setAttribute("tabindex", on ? "0" : "-1");
+      });
+      document.querySelectorAll(".tab-panel").forEach(function (p) {
+        p.classList.toggle("active", p.getAttribute("data-panel") === name);
+      });
+    };
+    tabs.forEach(function (tab, i) {
+      tab.setAttribute("role", "tab");
+      var on = tab.classList.contains("active");
+      tab.setAttribute("aria-selected", on ? "true" : "false");
+      tab.setAttribute("tabindex", on ? "0" : "-1");
+      tab.addEventListener("click", function () { selectTab(tab); });
+      tab.addEventListener("keydown", function (e) {
+        var k = e.keyCode || e.which;
+        if (k === 39 || k === 37) {
+          e.preventDefault();
+          var next = tabs[(i + (k === 39 ? 1 : tabs.length - 1)) % tabs.length];
+          next.focus(); selectTab(next);
+        }
       });
     });
   }
