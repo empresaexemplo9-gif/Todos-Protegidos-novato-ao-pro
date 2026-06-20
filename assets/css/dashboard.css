@@ -189,3 +189,7 @@ body.nav-locked { overflow: hidden; }
 .icon-btn-sm { width: 32px; height: 32px; border-radius: var(--tp-radius-sm); border: 1px solid var(--tp-line); background: #fff; color: var(--tp-slate); cursor: pointer; display: inline-grid; place-items: center; vertical-align: middle; }
 .icon-btn-sm:hover { background: var(--tp-bg-alt); color: var(--tp-ink); }
 @media (max-width: 480px) { .m-row { grid-template-columns: 1fr; } }
+
+/* Resumo de vendas (mini-cards) */
+.v-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px; }
+@media (max-width: 680px) { .v-summary { grid-template-columns: 1fr; } }
