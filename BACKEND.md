@@ -21,6 +21,9 @@ Nada no front-end precisa ser reescrito para ativar — basta configurar.
    - Cria as tabelas `tenants`, `profiles`, `modulos`, `itens`, as políticas de **isolamento por tenant** (RLS) e o **tenant inicial** (`matriz`).
    - A **trilha começa vazia** — o admin de cada tenant cria os módulos. Nenhum dado de exemplo é inserido.
    - Se já rodou um schema antigo neste projeto, rode antes o [`supabase/rollback.sql`](supabase/rollback.sql).
+3. Para o **upload de videoaulas**, rode também [`supabase/storage.sql`](supabase/storage.sql).
+   - Cria o bucket público `midia` (leitura pública para o vídeo tocar; envio só para admins).
+   - Para vídeos grandes, ajuste o limite em **Storage → Settings → File size limit**.
 
 ### 3. Pegar as chaves de API
 1. **Project Settings → API**.

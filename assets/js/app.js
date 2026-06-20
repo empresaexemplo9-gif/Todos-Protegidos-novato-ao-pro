@@ -185,18 +185,22 @@
             '<div class="field" data-url><label>URL do vídeo</label><input class="input" data-f="url" placeholder="https://..."></div>' +
             '<div class="field"><label>Duração / referência</label><input class="input" data-f="meta" placeholder="Ex.: 10:00"></div>' +
           '</div>' +
+          '<div class="field" data-file><label>Enviar videoaula (arquivo)</label><input class="input" type="file" accept="video/*" data-f="arquivo"><span class="hint" style="display:block;font-size:var(--tp-fs-xs);color:var(--tp-muted);margin-top:5px">Faça upload do arquivo de vídeo ou cole a URL acima. (Upload disponível no modo nuvem.)</span></div>' +
           '<div class="field"><label>Descrição (opcional)</label><textarea data-f="desc" placeholder="Resumo do conteúdo..."></textarea></div>' +
           '<div class="form-actions" style="display:flex;gap:10px"><button type="submit" class="btn btn-primary btn-sm">Adicionar</button><button type="button" class="btn btn-ghost btn-sm" data-cancel>Cancelar</button></div>' +
         '</form>'
       );
       var current = "aula";
       var urlField = form.querySelector("[data-url]");
+      var fileField = form.querySelector("[data-file]");
       var typeLabel = form.querySelector("[data-label]");
 
       toolbar.querySelectorAll("[data-add]").forEach(function (btn) {
         btn.addEventListener("click", function () {
           current = btn.getAttribute("data-add");
-          urlField.style.display = (current === "video" || current === "aula") ? "" : "none";
+          var ehVideo = (current === "video" || current === "aula");
+          urlField.style.display = ehVideo ? "" : "none";
+          fileField.style.display = ehVideo ? "" : "none";
           typeLabel.textContent = "Título d" + (current === "info" ? "a informação" : current === "file" ? "o material" : current === "aula" ? "a aula" : "o vídeo");
           form.classList.add("open");
           var t = form.querySelector('[data-f="title"]'); if (t) t.focus();
@@ -207,11 +211,26 @@
         e.preventDefault();
         var get = function (k) { var el = form.querySelector('[data-f="' + k + '"]'); return el ? el.value.trim() : ""; };
         var titulo = get("title"); if (!titulo) return;
-        openIds[mod.id] = true;
-        TPData.addItem(mod.id, { tipo: current, titulo: titulo, meta: get("meta"), url: get("url"), desc: get("desc") }).then(function (r) {
-          if (r && r.ok === false) { alert(r.error || "Não foi possível adicionar."); return; }
-          reload();
-        });
+        var fileInput = form.querySelector('[data-f="arquivo"]');
+        var file = fileInput && fileInput.files && fileInput.files[0];
+        var sbtn = form.querySelector('button[type="submit"]');
+        var finish = function (url) {
+          TPData.addItem(mod.id, { tipo: current, titulo: titulo, meta: get("meta"), url: url || get("url"), desc: get("desc") }).then(function (r) {
+            sbtn.disabled = false; sbtn.textContent = "Adicionar";
+            if (r && r.ok === false) { alert(r.error || "Não foi possível adicionar."); return; }
+            openIds[mod.id] = true; reload();
+          });
+        };
+        sbtn.disabled = true;
+        if (file) {
+          sbtn.textContent = "Enviando vídeo…";
+          TPData.uploadFile(file).then(function (u) {
+            if (!u.ok) { sbtn.disabled = false; sbtn.textContent = "Adicionar"; alert(u.error || "Falha no upload do vídeo."); return; }
+            finish(u.url);
+          }, function () { sbtn.disabled = false; sbtn.textContent = "Adicionar"; alert("Falha no upload do vídeo."); });
+        } else {
+          finish("");
+        }
       });
       body.appendChild(form);
 

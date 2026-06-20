@@ -105,6 +105,9 @@
       sess.email = novo; lsSet("tp_sessao", sess);
       return Promise.resolve({ ok: true });
     },
+    uploadFile: function () {
+      return Promise.resolve({ ok: false, error: "O upload de vídeo está disponível no modo nuvem (Supabase). Cole a URL do vídeo." });
+    },
 
     listModules: function () {
       var m = lsGet("tp_modulos", null);
@@ -188,6 +191,16 @@
       return sb.auth.updateUser({ email: (novo || "").toLowerCase() })
         .then(function (res) { return res.error ? { ok: false, error: traduzErro(res.error.message) } : { ok: true, needsConfirm: true }; });
     },
+    uploadFile: function (file) {
+      var safe = (file.name || "video").replace(/[^\w.\-]+/g, "_");
+      var path = "videoaulas/" + Date.now() + "_" + safe;
+      return sb.storage.from("midia").upload(path, file, { cacheControl: "3600", upsert: false })
+        .then(function (res) {
+          if (res.error) return { ok: false, error: traduzErro(res.error.message) };
+          var pub = sb.storage.from("midia").getPublicUrl(path);
+          return { ok: true, url: pub.data.publicUrl };
+        });
+    },
     listModules: function () {
       return Promise.all([
         sb.from("modulos").select("*").order("ordem", { ascending: true }),
@@ -239,6 +252,7 @@
     updateProfile: function (d) { return impl.updateProfile(d); },
     updatePassword: function (nova) { return impl.updatePassword(nova); },
     updateEmail: function (novo) { return impl.updateEmail(novo); },
+    uploadFile: function (file) { return impl.uploadFile(file); },
     listModules: function () { return impl.listModules(); },
     addModule: function (t, s) { return impl.addModule(t, s); },
     deleteModule: function (id) { return impl.deleteModule(id); },
