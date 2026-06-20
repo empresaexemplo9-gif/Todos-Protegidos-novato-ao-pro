@@ -1,7 +1,0 @@
-# Copie o novo arquivo para substituir
-cp /caminho/para/logo_svg.svg ./assets/images/logo.svg
-
-# Depois commit e push
-git add assets/images/logo.svg
-git commit -m "chore: atualiza logo.svg"
-git push origin main
