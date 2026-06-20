@@ -7,6 +7,17 @@
     var done = function () { try { localStorage.removeItem("tp_sessao"); } catch (e) {} window.location.href = "login.html"; };
     if (window.TPData) { TPData.logout().then(done, done); } else { done(); }
   }
+  // Rótulo de cargo/perfil exibido na interface
+  function papelLabel(s) {
+    if (!s) return "";
+    if (s.titulo) return s.titulo;
+    if (s.nome && /\bubirani\b/i.test(s.nome)) return "Presidente da empresa";
+    if (s.role === "superadmin") return "Superadmin";
+    if (s.role === "admin") return "Administrador";
+    return "Consultor";
+  }
+  // Liga botões "Sair" estáticos (páginas sem topbar)
+  Array.prototype.forEach.call(document.querySelectorAll("[data-logout]"), function (b) { b.addEventListener("click", logout); });
 
   // Menu mobile (landing)
   var toggle = document.querySelector(".nav-toggle");
@@ -139,6 +150,7 @@
           '<div class="level-tag" style="background:' + tagFor(i) + '">' + nTag(i) + '</div>' +
           '<div class="lvl-info"><h3></h3><div class="d"></div></div>' +
           '<div class="lvl-actions">' +
+            '<a class="btn btn-ghost btn-sm" href="prova.html?modulo=' + mod.id + '" title="Editar a prova deste módulo">Prova</a>' +
             '<button class="lvl-del" title="Excluir módulo" aria-label="Excluir módulo">' + DEL + '</button>' +
             CHEV +
           '</div>' +
@@ -147,7 +159,7 @@
       head.querySelector("h3").textContent = mod.titulo;
       head.querySelector(".lvl-info .d").textContent = mod.sub || "";
       head.addEventListener("click", function (e) {
-        if (e.target.closest(".lvl-del")) return;
+        if (e.target.closest(".lvl-del") || e.target.closest("a")) return;
         openIds[mod.id] = !openIds[mod.id]; card.classList.toggle("open", openIds[mod.id]);
       });
       head.querySelector(".lvl-del").addEventListener("click", function () {
@@ -395,8 +407,8 @@
           var ico = isDone(it.id) ? ICODONE : (isPlayable(it) ? ICOPLAY : '<span class="ic next">•</span>');
           html += '<a class="lesson' + active + '" href="aula.html?item=' + encodeURIComponent(it.id) + '" style="text-decoration:none;color:inherit">' + ico + '<div class="t">' + esc(it.titulo) + '<small>' + esc(TYPELBL[it.tipo] || "") + (it.meta ? " · " + esc(it.meta) : "") + '</small></div></a>';
         });
+        html += '<a class="lesson" href="quiz.html?modulo=' + encodeURIComponent(m.id) + '" style="text-decoration:none;color:inherit"><span class="ic next">★</span><div class="t">Prova do módulo<small>Quiz · libera certificado</small></div></a>';
       });
-      html += '<a class="lesson" href="quiz.html" style="text-decoration:none;color:inherit"><span class="ic next">★</span><div class="t">Avaliação do módulo<small>Quiz · libera certificado</small></div></a>';
       html += '</aside></div>';
       playerApp.innerHTML = html;
 
@@ -425,78 +437,185 @@
     }, function () { window.location.href = "login.html"; });
   }
 
-  // ---- Avaliação / quiz + certificado ----
+  // ---- Avaliação / prova do módulo (dinâmica) + certificado ----
   var quizForm = document.getElementById("quizForm");
   if (quizForm) {
-    var questions = quizForm.querySelectorAll("[data-q]");
-    var total = questions.length;
     var PASS = 0.7;
+    var modId = new URLSearchParams(location.search).get("modulo");
+    var qWrap = document.getElementById("quizQuestoes");
     var answeredEl = document.getElementById("answered");
     var barEl = document.getElementById("quizBar");
+    var sessao = null, moduloTitulo = "", total = 0;
+    function escq(s) { var d = document.createElement("div"); d.textContent = s == null ? "" : s; return d.innerHTML; }
+    function setT(id, t) { var e = document.getElementById(id); if (e) e.textContent = t; }
 
     function updateProgress() {
-      var done = 0;
-      questions.forEach(function (q) { if (q.querySelector("input:checked")) done++; });
+      var done = 0, qs = quizForm.querySelectorAll("[data-q]");
+      qs.forEach(function (q) { if (q.querySelector("input:checked")) done++; });
       if (answeredEl) answeredEl.textContent = done;
-      if (barEl) barEl.style.width = Math.round((done / total) * 100) + "%";
+      if (barEl) barEl.style.width = total ? Math.round((done / total) * 100) + "%" : "0%";
     }
+
+    function buildQuiz(questoes) {
+      total = questoes.length;
+      var minimo = Math.ceil(PASS * total);
+      setT("quizTotal", String(total));
+      setT("quizCount", total + (total === 1 ? " questão" : " questões"));
+      setT("quizDesc", "Responda às questões com base no que você aprendeu" + (moduloTitulo ? " em " + moduloTitulo : "") + ". É preciso acertar no mínimo 70% (" + minimo + " de " + total + ") para liberar o certificado.");
+      var html = "";
+      questoes.forEach(function (q, qi) {
+        html += '<div class="quiz-q" data-q><div class="qhead"><span class="qn">' + (qi + 1) + '</span><div class="qtitle">' + escq(q.enunciado) + '</div></div>';
+        (q.opcoes || []).forEach(function (op, oi) {
+          html += '<label class="opt"><input type="radio" name="q_' + escq(q.id) + '"' + (oi === q.correta ? ' data-correct' : '') + '><span class="mark"></span><span class="otext">' + escq(op) + '</span></label>';
+        });
+        html += '</div>';
+      });
+      qWrap.innerHTML = html;
+      updateProgress();
+    }
+
     quizForm.addEventListener("change", function (e) { if (e.target && e.target.type === "radio") updateProgress(); });
 
     quizForm.addEventListener("submit", function (e) {
       e.preventDefault();
-      var correct = 0;
-      questions.forEach(function (q) {
+      if (!total) return;
+      var correct = 0, qs = quizForm.querySelectorAll("[data-q]");
+      qs.forEach(function (q) {
         var chosen = q.querySelector("input:checked");
         q.classList.add("graded");
         var right = q.querySelector("input[data-correct]");
-        // marca a opção correta
-        var rightOpt = right.closest(".opt");
-        rightOpt.classList.add("correct");
-        if (!rightOpt.querySelector(".res")) {
-          var s = document.createElement("span"); s.className = "res"; s.textContent = "✓ correta"; rightOpt.appendChild(s);
-        }
+        if (right) { var rightOpt = right.closest(".opt"); rightOpt.classList.add("correct"); if (!rightOpt.querySelector(".res")) { var s = document.createElement("span"); s.className = "res"; s.textContent = "✓ correta"; rightOpt.appendChild(s); } }
         if (chosen) {
-          if (chosen.hasAttribute("data-correct")) {
-            correct++;
-          } else {
-            var wrongOpt = chosen.closest(".opt");
-            wrongOpt.classList.add("wrong");
-            var w = document.createElement("span"); w.className = "res"; w.textContent = "✗ sua resposta"; wrongOpt.appendChild(w);
-          }
+          if (chosen.hasAttribute("data-correct")) correct++;
+          else { var wrongOpt = chosen.closest(".opt"); wrongOpt.classList.add("wrong"); var w = document.createElement("span"); w.className = "res"; w.textContent = "✗ sua resposta"; wrongOpt.appendChild(w); }
         }
-        // bloqueia alterações
         q.querySelectorAll("input").forEach(function (i) { i.disabled = true; });
       });
 
       var pct = Math.round((correct / total) * 100);
       var passed = correct / total >= PASS;
-
+      var minimo = Math.ceil(PASS * total);
       var result = document.getElementById("quizResult");
-      document.getElementById("quizScore").textContent = pct + "%";
-      document.getElementById("quizMsg").textContent = passed ? "Parabéns, você foi aprovado! 🎉" : "Quase lá — não foi dessa vez.";
-      document.getElementById("quizSub").textContent = "Você acertou " + correct + " de " + total + " questões." + (passed ? " Seu certificado foi liberado abaixo." : " A nota mínima é 70% (5 de 7). Revise o conteúdo e tente novamente.");
+      setT("quizScore", pct + "%");
+      setT("quizMsg", passed ? "Parabéns, você foi aprovado! 🎉" : "Quase lá — não foi dessa vez.");
+      setT("quizSub", "Você acertou " + correct + " de " + total + " questões." + (passed ? " Seu certificado foi liberado abaixo." : " A nota mínima é 70% (" + minimo + " de " + total + "). Revise o conteúdo e tente novamente."));
       result.className = "quiz-result quiz-print-hide show " + (passed ? "pass" : "fail");
-
       document.getElementById("quizSubmit").style.display = "none";
       document.getElementById("quizReset").style.display = "";
 
       if (passed) {
-        var cw = document.getElementById("certWrap");
-        cw.classList.add("show");
-        document.getElementById("certScore").textContent = pct + "%";
+        var cw = document.getElementById("certWrap"); cw.classList.add("show");
+        setT("certScore", pct + "%");
         var d = new Date();
-        document.getElementById("certDate").textContent = d.toLocaleDateString("pt-BR");
-        document.getElementById("certId").textContent = "TP-" + d.getFullYear() + "-" + String(Date.now()).slice(-6);
+        setT("certDate", d.toLocaleDateString("pt-BR"));
+        setT("certId", "TP-" + d.getFullYear() + "-" + String(Date.now()).slice(-6));
+        if (sessao) setT("certName", sessao.nome);
+        setT("certModulo", moduloTitulo || "—");
         cw.scrollIntoView({ behavior: "smooth" });
-      } else {
-        result.scrollIntoView({ behavior: "smooth" });
-      }
+      } else { result.scrollIntoView({ behavior: "smooth" }); }
     });
 
     var resetBtn = document.getElementById("quizReset");
     if (resetBtn) resetBtn.addEventListener("click", function () { location.reload(); });
 
-    updateProgress();
+    TPData.session().then(function (s) {
+      if (!s) { window.location.href = "login.html"; return; }
+      sessao = s;
+      if (!modId) { if (qWrap) qWrap.innerHTML = '<div class="gestao-empty">Selecione um módulo na trilha para fazer a prova.</div>'; document.getElementById("quizSubmit").style.display = "none"; return; }
+      Promise.all([TPData.listModules(), TPData.listQuestions(modId)]).then(function (res) {
+        var mods = res[0] || [], questoes = res[1] || [];
+        var m = mods.filter(function (x) { return x.id === modId; })[0];
+        moduloTitulo = m ? m.titulo : "";
+        var sub = document.querySelector(".topbar .sub"); if (sub && m) sub.textContent = m.titulo;
+        if (!questoes.length) {
+          var ehAdmin = s.role === "admin" || s.role === "superadmin";
+          if (qWrap) qWrap.innerHTML = '<div class="gestao-empty" style="padding:40px">A prova deste módulo ainda não foi cadastrada.' + (ehAdmin ? '<div style="margin-top:12px"><a class="btn btn-primary btn-sm" href="prova.html?modulo=' + encodeURIComponent(modId) + '">Cadastrar prova</a></div>' : '') + '</div>';
+          var qi = document.getElementById("quizIntro"); if (qi) qi.style.display = "none";
+          document.getElementById("quizSubmit").style.display = "none";
+          return;
+        }
+        buildQuiz(questoes);
+      });
+    }, function () { window.location.href = "login.html"; });
+  }
+
+  // ---- Editor de prova (admin) ----
+  var provaApp = document.getElementById("provaApp");
+  if (provaApp) {
+    var pModId = new URLSearchParams(location.search).get("modulo");
+    var pTitleEl = document.getElementById("provaTitulo");
+    function pesc(s) { var d = document.createElement("div"); d.textContent = s == null ? "" : s; return d.innerHTML; }
+    var questoesCache = [], editId = null;
+
+    function renderLista() {
+      var box = document.getElementById("provaLista");
+      if (!questoesCache.length) { box.innerHTML = '<div class="gestao-empty" style="padding:24px">Nenhuma questão ainda. Use o formulário para adicionar (meta: 10 questões).</div>'; return; }
+      var html = "";
+      questoesCache.forEach(function (q, i) {
+        html += '<div class="card" style="margin-bottom:12px"><div style="display:flex;gap:10px;align-items:flex-start"><span class="badge">' + (i + 1) + '</span><div style="flex:1"><strong style="font-family:var(--tp-font-sans)">' + pesc(q.enunciado) + '</strong><ul style="margin:8px 0 0;padding:0;list-style:none">';
+        (q.opcoes || []).forEach(function (op, oi) {
+          html += '<li style="padding:3px 0;color:' + (oi === q.correta ? "var(--tp-green-700);font-weight:600" : "var(--tp-slate)") + '">' + (oi === q.correta ? "✓ " : "• ") + pesc(op) + '</li>';
+        });
+        html += '</ul></div><div style="display:flex;flex-direction:column;gap:6px"><button class="btn btn-ghost btn-sm" data-edit="' + q.id + '">Editar</button><button class="btn btn-ghost btn-sm" data-del="' + q.id + '">Excluir</button></div></div></div>';
+      });
+      box.innerHTML = html;
+      box.querySelectorAll("[data-del]").forEach(function (b) { b.addEventListener("click", function () { if (confirm("Excluir esta questão?")) TPData.deleteQuestion(b.getAttribute("data-del")).then(reloadQ); }); });
+      box.querySelectorAll("[data-edit]").forEach(function (b) { b.addEventListener("click", function () { startEdit(b.getAttribute("data-edit")); }); });
+    }
+
+    function startEdit(id) {
+      var q = questoesCache.filter(function (x) { return x.id === id; })[0]; if (!q) return;
+      editId = id;
+      document.getElementById("pEnunciado").value = q.enunciado;
+      for (var i = 0; i < 4; i++) { document.getElementById("pOp" + i).value = (q.opcoes && q.opcoes[i]) || ""; }
+      var radios = document.getElementsByName("pCorreta"); if (radios[q.correta]) radios[q.correta].checked = true;
+      document.getElementById("pFormTitle").textContent = "Editar questão";
+      document.getElementById("pSubmit").textContent = "Salvar alteração";
+      document.getElementById("pCancel").style.display = "";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    function resetForm() {
+      editId = null;
+      document.getElementById("provaForm").reset();
+      document.getElementById("pFormTitle").textContent = "Adicionar questão";
+      document.getElementById("pSubmit").textContent = "Adicionar questão";
+      document.getElementById("pCancel").style.display = "none";
+    }
+    function reloadQ() {
+      return TPData.listQuestions(pModId).then(function (qs) { questoesCache = qs || []; renderLista(); var c = document.getElementById("provaContador"); if (c) c.textContent = questoesCache.length + "/10"; });
+    }
+
+    var pmsg = document.getElementById("provaMsg");
+    function pShow(t, ok) { pmsg.textContent = t; pmsg.className = "form-msg show " + (ok ? "ok" : "err"); }
+
+    document.getElementById("provaForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var enun = document.getElementById("pEnunciado").value.trim();
+      var ops = []; for (var i = 0; i < 4; i++) { ops.push(document.getElementById("pOp" + i).value.trim()); }
+      var radios = document.getElementsByName("pCorreta"), correctIdx = -1;
+      for (var j = 0; j < radios.length; j++) { if (radios[j].checked) correctIdx = parseInt(radios[j].value, 10); }
+      if (!enun) return pShow("Escreva o enunciado da questão.", false);
+      if (ops.filter(function (x) { return x; }).length < 2) return pShow("Preencha pelo menos 2 alternativas.", false);
+      if (correctIdx < 0 || !ops[correctIdx]) return pShow("Marque a alternativa correta (e ela não pode estar vazia).", false);
+      var novas = [], novoCorreto = 0;
+      ops.forEach(function (v, idx) { if (v) { if (idx === correctIdx) novoCorreto = novas.length; novas.push(v); } });
+      var payload = { enunciado: enun, opcoes: novas, correta: novoCorreto };
+      var btn = document.getElementById("pSubmit"); btn.disabled = true;
+      var fin = function (r) { btn.disabled = false; if (r && r.ok === false) return pShow(r.error || "Não foi possível salvar.", false); pShow("Questão salva! ✓", true); resetForm(); reloadQ(); };
+      if (editId) TPData.updateQuestion(editId, payload).then(fin); else TPData.addQuestion(pModId, payload).then(fin);
+    });
+    document.getElementById("pCancel").addEventListener("click", resetForm);
+
+    TPData.session().then(function (s) {
+      if (!s) { window.location.href = "login.html"; return; }
+      if (!(s.role === "admin" || s.role === "superadmin")) { provaApp.innerHTML = '<div class="gestao-empty" style="padding:48px">Acesso restrito a administradores.</div>'; return; }
+      if (!pModId) { provaApp.innerHTML = '<div class="gestao-empty" style="padding:48px">Módulo não informado. Abra pelo botão “Prova” na Gestão de conteúdo.</div>'; return; }
+      TPData.listModules().then(function (mods) {
+        var m = (mods || []).filter(function (x) { return x.id === pModId; })[0];
+        if (pTitleEl) pTitleEl.textContent = m ? ("Prova — " + m.titulo) : "Prova do módulo";
+        reloadQ();
+      });
+    }, function () { window.location.href = "login.html"; });
   }
 
   // ---- Cadastro do consultor (criar o próprio acesso) ----
@@ -566,8 +685,6 @@
   // ---- Minha conta (editar dados da conta) ----
   var contaForm = document.getElementById("contaForm");
   if (contaForm) {
-    Array.prototype.forEach.call(document.querySelectorAll("[data-logout]"), function (b) { b.addEventListener("click", logout); });
-
     var cmsg = document.getElementById("contaMsg");
     var emailAtual = "";
     function cShow(t, ok) { cmsg.textContent = t; cmsg.className = "form-msg show " + (ok ? "ok" : "err"); if (!ok) cmsg.scrollIntoView({ behavior: "smooth", block: "center" }); }
@@ -580,8 +697,7 @@
       var n = document.getElementById("c_nome"); if (n) n.value = s.nome || "";
       var t = document.getElementById("c_telefone"); if (t) t.value = s.telefone || "";
       var p = document.getElementById("contaPerfil");
-      var papel = s.role === "admin" ? "Administrador" : s.role === "superadmin" ? "Superadmin" : "Consultor";
-      if (p) p.textContent = papel + " · atualize seus dados pessoais e sua senha.";
+      if (p) p.textContent = papelLabel(s) + " · atualize seus dados pessoais e sua senha.";
     }, function () { window.location.href = "login.html"; });
 
     contaForm.addEventListener("submit", function (e) {
@@ -629,7 +745,7 @@
     function apply(s) {
       if (!s || !s.nome) return;
       var nm = chip.querySelector(".nm"); if (nm) nm.textContent = s.nome;
-      var rl = chip.querySelector(".rl"); if (rl) rl.textContent = s.role === "admin" ? "Administrador" : "Consultor";
+      var rl = chip.querySelector(".rl"); if (rl) rl.textContent = papelLabel(s);
       var av = chip.querySelector(".avatar");
       if (av) av.textContent = s.nome.split(/\s+/).map(function (w) { return w.charAt(0); }).slice(0, 2).join("").toUpperCase();
     }

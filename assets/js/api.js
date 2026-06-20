@@ -115,6 +115,29 @@
       lsSet("tp_progresso", p);
       return Promise.resolve({ ok: true });
     },
+    listQuestions: function (modId) {
+      var all = lsGet("tp_questoes", {});
+      return Promise.resolve((all[modId] || []).slice());
+    },
+    addQuestion: function (modId, q) {
+      var all = lsGet("tp_questoes", {});
+      var arr = all[modId] || [];
+      var nova = { id: uid(), enunciado: q.enunciado, opcoes: q.opcoes, correta: q.correta };
+      arr.push(nova); all[modId] = arr; lsSet("tp_questoes", all);
+      return Promise.resolve({ ok: true, question: nova });
+    },
+    updateQuestion: function (id, q) {
+      var all = lsGet("tp_questoes", {});
+      Object.keys(all).forEach(function (k) { all[k].forEach(function (it) { if (it.id === id) { it.enunciado = q.enunciado; it.opcoes = q.opcoes; it.correta = q.correta; } }); });
+      lsSet("tp_questoes", all);
+      return Promise.resolve({ ok: true });
+    },
+    deleteQuestion: function (id) {
+      var all = lsGet("tp_questoes", {});
+      Object.keys(all).forEach(function (k) { all[k] = all[k].filter(function (it) { return it.id !== id; }); });
+      lsSet("tp_questoes", all);
+      return Promise.resolve({ ok: true });
+    },
 
     listModules: function () {
       var m = lsGet("tp_modulos", null);
@@ -175,10 +198,10 @@
       return sb.auth.getUser().then(function (r) {
         var user = r.data && r.data.user;
         if (!user) return null;
-        return sb.from("profiles").select("nome,telefone,role").eq("id", user.id).single()
+        return sb.from("profiles").select("nome,telefone,role,titulo").eq("id", user.id).single()
           .then(function (p) {
             var prof = p.data || {};
-            return { nome: prof.nome || user.email, email: user.email, telefone: prof.telefone || "", role: prof.role || "consultor" };
+            return { nome: prof.nome || user.email, email: user.email, telefone: prof.telefone || "", role: prof.role || "consultor", titulo: prof.titulo || "" };
           });
       });
     },
@@ -221,6 +244,22 @@
         if (done) return sb.from("progresso").upsert({ user_id: u.id, item_id: itemId }).then(function (res) { return res.error ? { ok: false, error: traduzErro(res.error.message) } : { ok: true }; });
         return sb.from("progresso").delete().eq("user_id", u.id).eq("item_id", itemId).then(function (res) { return res.error ? { ok: false, error: traduzErro(res.error.message) } : { ok: true }; });
       });
+    },
+    listQuestions: function (modId) {
+      return sb.from("questoes").select("*").eq("modulo_id", modId).order("ordem", { ascending: true })
+        .then(function (res) { return (res.data || []).map(function (q) { return { id: q.id, enunciado: q.enunciado, opcoes: q.opcoes || [], correta: q.correta }; }); });
+    },
+    addQuestion: function (modId, q) {
+      return sb.from("questoes").insert({ modulo_id: modId, enunciado: q.enunciado, opcoes: q.opcoes, correta: q.correta, ordem: Date.now() }).select().single()
+        .then(function (res) { return res.error ? { ok: false, error: traduzErro(res.error.message) } : { ok: true, question: { id: res.data.id, enunciado: res.data.enunciado, opcoes: res.data.opcoes || [], correta: res.data.correta } }; });
+    },
+    updateQuestion: function (id, q) {
+      return sb.from("questoes").update({ enunciado: q.enunciado, opcoes: q.opcoes, correta: q.correta }).eq("id", id)
+        .then(function (res) { return res.error ? { ok: false, error: traduzErro(res.error.message) } : { ok: true }; });
+    },
+    deleteQuestion: function (id) {
+      return sb.from("questoes").delete().eq("id", id)
+        .then(function (res) { return res.error ? { ok: false, error: traduzErro(res.error.message) } : { ok: true }; });
     },
     listModules: function () {
       return Promise.all([
@@ -276,6 +315,10 @@
     uploadFile: function (file) { return impl.uploadFile(file); },
     getProgress: function () { return impl.getProgress(); },
     setProgress: function (id, done) { return impl.setProgress(id, done); },
+    listQuestions: function (m) { return impl.listQuestions(m); },
+    addQuestion: function (m, q) { return impl.addQuestion(m, q); },
+    updateQuestion: function (id, q) { return impl.updateQuestion(id, q); },
+    deleteQuestion: function (id) { return impl.deleteQuestion(id); },
     listModules: function () { return impl.listModules(); },
     addModule: function (t, s) { return impl.addModule(t, s); },
     deleteModule: function (id) { return impl.deleteModule(id); },

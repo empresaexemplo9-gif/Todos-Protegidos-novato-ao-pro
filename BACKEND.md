@@ -27,6 +27,14 @@ Nada no front-end precisa ser reescrito para ativar — basta configurar.
 4. Para o **acompanhamento de progresso** (aulas concluídas), rode [`supabase/progress.sql`](supabase/progress.sql).
    - Cria a tabela `progresso` (cada consultor vê/edita só o próprio progresso).
    - Já incluído no `schema.sql` para instalações novas; o `progress.sql` é para quem já rodou o schema antes.
+5. Para as **provas por módulo** e o **título de cargo**, rode [`supabase/quiz.sql`](supabase/quiz.sql).
+   - Cria a tabela `questoes` (10 questões por módulo, isoladas por tenant; só admin edita) e a coluna `profiles.titulo`.
+   - **Definir o Ubirani como Presidente** (ajuste o e-mail):
+     ```sql
+     update public.profiles set titulo = 'Presidente da empresa'
+     where id = (select id from auth.users where email = 'ubirani@SEU-DOMINIO.com');
+     ```
+     *(Mesmo sem rodar esse update, qualquer usuário cujo nome contenha "Ubirani" já aparece como "Presidente da empresa" na interface.)*
 
 ### 3. Pegar as chaves de API
 1. **Project Settings → API**.

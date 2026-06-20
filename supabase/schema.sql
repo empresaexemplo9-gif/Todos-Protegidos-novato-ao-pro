@@ -182,6 +182,35 @@ drop policy if exists "progresso_delete_own" on public.progresso;
 create policy "progresso_delete_own" on public.progresso
   for delete using (user_id = auth.uid());
 
+-- 8.2) TÍTULO/CARGO do perfil (ex.: "Presidente da empresa")
+alter table public.profiles add column if not exists titulo text;
+
+-- 8.3) QUESTÕES da prova (por módulo / tenant) — leitura no tenant, escrita só admin
+create table if not exists public.questoes (
+  id         uuid primary key default gen_random_uuid(),
+  tenant_id  uuid not null references public.tenants(id) on delete cascade,
+  modulo_id  uuid not null references public.modulos(id) on delete cascade,
+  ordem      bigint not null default 0,
+  enunciado  text not null,
+  opcoes     jsonb not null default '[]'::jsonb,
+  correta    int  not null default 0,
+  created_at timestamptz not null default now()
+);
+alter table public.questoes enable row level security;
+
+drop trigger if exists set_tenant_questoes on public.questoes;
+create trigger set_tenant_questoes before insert on public.questoes
+  for each row execute function public.set_tenant_id();
+
+drop policy if exists "questoes_read" on public.questoes;
+create policy "questoes_read" on public.questoes
+  for select using (tenant_id = public.current_tenant_id() or public.is_superadmin());
+
+drop policy if exists "questoes_write" on public.questoes;
+create policy "questoes_write" on public.questoes
+  for all using (public.is_admin() and tenant_id = public.current_tenant_id())
+  with check (public.is_admin() and tenant_id = public.current_tenant_id());
+
 -- 9) Tenant inicial (necessário para os primeiros cadastros).
 --    A trilha começa VAZIA — o admin de cada tenant cria os módulos.
 insert into public.tenants (nome, slug)
