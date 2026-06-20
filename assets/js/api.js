@@ -60,8 +60,8 @@
     },
     login: function (user, senha) {
       var ukey = user.toLowerCase();
-      if (ukey === "admin" && senha === ADMIN_LOCAL_SENHA) {
-        var a = { nome: "Administrador", email: "admin", telefone: "", role: "admin" };
+      if ((ukey === "admin" || ukey === "presidente") && senha === ADMIN_LOCAL_SENHA) {
+        var a = { nome: "Administrador", email: "admin", telefone: "", role: "admin", titulo: "Presidente da empresa" };
         lsSet("tp_sessao", a);
         return Promise.resolve({ ok: true, session: a });
       }
@@ -186,7 +186,8 @@
       });
     },
     login: function (user, senha) {
-      var email = (user.toLowerCase() === "admin") ? ADMIN_EMAIL : user;
+      var u = user.toLowerCase();
+      var email = (u === "admin" || u === "presidente") ? ADMIN_EMAIL : user;
       return sb.auth.signInWithPassword({ email: email, password: senha })
         .then(function (r) {
           if (r.error) return { ok: false, error: traduzErro(r.error.message) };
