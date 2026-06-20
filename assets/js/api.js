@@ -93,6 +93,18 @@
       lsSet("tp_consultores", cons);
       return Promise.resolve({ ok: true });
     },
+    updateEmail: function (novo) {
+      novo = (novo || "").toLowerCase();
+      var sess = lsGet("tp_sessao", null);
+      if (!sess) return Promise.resolve({ ok: false, error: "Sessão expirada." });
+      var cons = lsGet("tp_consultores", []);
+      if (cons.some(function (c) { return c.email === novo && c.email !== sess.email; }))
+        return Promise.resolve({ ok: false, error: "Já existe um acesso com esse e-mail." });
+      cons.forEach(function (c) { if (c.email === sess.email) { c.email = novo; } });
+      lsSet("tp_consultores", cons);
+      sess.email = novo; lsSet("tp_sessao", sess);
+      return Promise.resolve({ ok: true });
+    },
 
     listModules: function () {
       var m = lsGet("tp_modulos", null);
@@ -172,6 +184,10 @@
       return sb.auth.updateUser({ password: nova })
         .then(function (res) { return res.error ? { ok: false, error: traduzErro(res.error.message) } : { ok: true }; });
     },
+    updateEmail: function (novo) {
+      return sb.auth.updateUser({ email: (novo || "").toLowerCase() })
+        .then(function (res) { return res.error ? { ok: false, error: traduzErro(res.error.message) } : { ok: true, needsConfirm: true }; });
+    },
     listModules: function () {
       return Promise.all([
         sb.from("modulos").select("*").order("ordem", { ascending: true }),
@@ -222,6 +238,7 @@
     session: function () { return impl.session(); },
     updateProfile: function (d) { return impl.updateProfile(d); },
     updatePassword: function (nova) { return impl.updatePassword(nova); },
+    updateEmail: function (novo) { return impl.updateEmail(novo); },
     listModules: function () { return impl.listModules(); },
     addModule: function (t, s) { return impl.addModule(t, s); },
     deleteModule: function (id) { return impl.deleteModule(id); },

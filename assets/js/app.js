@@ -414,11 +414,13 @@
     Array.prototype.forEach.call(document.querySelectorAll("[data-logout]"), function (b) { b.addEventListener("click", logout); });
 
     var cmsg = document.getElementById("contaMsg");
+    var emailAtual = "";
     function cShow(t, ok) { cmsg.textContent = t; cmsg.className = "form-msg show " + (ok ? "ok" : "err"); if (!ok) cmsg.scrollIntoView({ behavior: "smooth", block: "center" }); }
     function cv(id) { var el = document.getElementById(id); return el ? el.value.trim() : ""; }
 
     TPData.session().then(function (s) {
       if (!s) { window.location.href = "login.html"; return; }
+      emailAtual = s.email || "";
       var e = document.getElementById("c_email"); if (e) e.value = s.email || "";
       var n = document.getElementById("c_nome"); if (n) n.value = s.nome || "";
       var t = document.getElementById("c_telefone"); if (t) t.value = s.telefone || "";
@@ -429,25 +431,34 @@
 
     contaForm.addEventListener("submit", function (e) {
       e.preventDefault();
-      var nome = cv("c_nome"), telefone = cv("c_telefone");
+      var nome = cv("c_nome"), telefone = cv("c_telefone"), emailNovo = cv("c_email").toLowerCase();
       var senha = document.getElementById("c_senha").value || "";
       var senha2 = document.getElementById("c_senha2").value || "";
       if (!nome) return cShow("Informe seu nome.", false);
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(emailNovo)) return cShow("Digite um e-mail válido.", false);
       if (senha || senha2) {
         if (senha.length < 6) return cShow("A nova senha deve ter pelo menos 6 caracteres.", false);
         if (senha !== senha2) return cShow("As senhas não conferem.", false);
       }
+
+      var trocouEmail = emailNovo !== (emailAtual || "").toLowerCase();
+      var passos = [function () { return TPData.updateProfile({ nome: nome, telefone: telefone }); }];
+      if (trocouEmail) passos.push(function () { return TPData.updateEmail(emailNovo); });
+      if (senha) passos.push(function () { return TPData.updatePassword(senha); });
+
       var btn = contaForm.querySelector('button[type="submit"]');
       btn.disabled = true;
-      TPData.updateProfile({ nome: nome, telefone: telefone }).then(function (r) {
-        if (!r.ok) { btn.disabled = false; return cShow(r.error || "Não foi possível salvar os dados.", false); }
-        if (!senha) { btn.disabled = false; return cShow("Dados atualizados com sucesso! ✓", true); }
-        TPData.updatePassword(senha).then(function (r2) {
-          btn.disabled = false;
-          if (!r2.ok) return cShow("Dados salvos, mas a senha não pôde ser alterada: " + (r2.error || ""), false);
-          document.getElementById("c_senha").value = ""; document.getElementById("c_senha2").value = "";
-          cShow("Dados e senha atualizados com sucesso! ✓", true);
-        });
+      var p = Promise.resolve({ ok: true });
+      passos.forEach(function (step) { p = p.then(function (prev) { return (prev && prev.ok === false) ? prev : step(); }); });
+      p.then(function (last) {
+        btn.disabled = false;
+        if (last && last.ok === false) return cShow(last.error || "Não foi possível salvar tudo.", false);
+        document.getElementById("c_senha").value = ""; document.getElementById("c_senha2").value = "";
+        if (trocouEmail) {
+          emailAtual = emailNovo;
+          return cShow("Dados salvos! Para concluir a troca de login, confirme pelo link enviado a " + emailNovo + " (se a confirmação de e-mail estiver ativa).", true);
+        }
+        cShow("Dados atualizados com sucesso! ✓", true);
       }, function () { btn.disabled = false; cShow("Erro de conexão. Tente novamente.", false); });
     });
   }
