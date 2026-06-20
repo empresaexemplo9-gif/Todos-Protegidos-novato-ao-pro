@@ -2,6 +2,10 @@
 (function () {
   "use strict";
 
+  // Sessão (login client-side)
+  function getSessao() { try { return JSON.parse(localStorage.getItem("tp_sessao") || "null"); } catch (e) { return null; } }
+  function logout() { try { localStorage.removeItem("tp_sessao"); } catch (e) {} window.location.href = "login.html"; }
+
   // Menu mobile (landing)
   var toggle = document.querySelector(".nav-toggle");
   var links = document.querySelector(".nav-links");
@@ -73,7 +77,20 @@
 
   // ---- Gestão de conteúdo: módulos, aulas e vídeos (persistente) ----
   var gestaoRoot = document.getElementById("gestaoRoot");
-  if (gestaoRoot) {
+  if (gestaoRoot && (function () {
+    // Proteção: somente administrador acessa a gestão
+    var sess = getSessao();
+    if (sess && sess.role === "admin") return true;
+    var addBtn = document.getElementById("addModulo"); if (addBtn) addBtn.style.display = "none";
+    var rstBtn = document.getElementById("gestaoReset"); if (rstBtn) rstBtn.style.display = "none";
+    gestaoRoot.innerHTML =
+      '<div class="gestao-empty" style="padding:48px 32px">' +
+        '<div style="font-family:var(--tp-font-sans);font-weight:800;font-size:var(--tp-fs-xl);color:var(--tp-ink);margin-bottom:8px">Acesso restrito</div>' +
+        '<p style="max-width:42ch;margin:0 auto 18px">Esta área é exclusiva para <strong>administradores</strong>. Faça login com uma conta de administrador para gerenciar módulos, aulas e vídeos.</p>' +
+        '<a href="login.html" class="btn btn-primary btn-sm">Entrar como administrador</a>' +
+      '</div>';
+    return false;
+  })()) {
     var STORE = "tp_modulos";
     var ICONS = {
       video: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 8-6 4 6 4V8Z"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>',
@@ -412,17 +429,27 @@
     });
   }
 
-  // ---- Reflete a sessão (nome/perfil) no topo das telas internas ----
+  // ---- Reflete a sessão (nome/perfil) e injeta o botão "Sair" ----
   (function () {
     var chip = document.querySelector(".user-chip");
     if (!chip) return;
-    var s = null;
-    try { s = JSON.parse(localStorage.getItem("tp_sessao") || "null"); } catch (err) {}
-    if (!s || !s.nome) return;
-    var nm = chip.querySelector(".nm"); if (nm) nm.textContent = s.nome;
-    var rl = chip.querySelector(".rl"); if (rl) rl.textContent = s.role === "admin" ? "Administrador" : "Consultor";
-    var av = chip.querySelector(".avatar");
-    if (av) av.textContent = s.nome.split(/\s+/).map(function (w) { return w.charAt(0); }).slice(0, 2).join("").toUpperCase();
+    chip.style.marginLeft = "auto";
+    var s = getSessao();
+    if (s && s.nome) {
+      var nm = chip.querySelector(".nm"); if (nm) nm.textContent = s.nome;
+      var rl = chip.querySelector(".rl"); if (rl) rl.textContent = s.role === "admin" ? "Administrador" : "Consultor";
+      var av = chip.querySelector(".avatar");
+      if (av) av.textContent = s.nome.split(/\s+/).map(function (w) { return w.charAt(0); }).slice(0, 2).join("").toUpperCase();
+    }
+    if (!chip.parentNode.querySelector("[data-logout]")) {
+      var out = document.createElement("button");
+      out.className = "btn btn-ghost btn-sm";
+      out.setAttribute("data-logout", "");
+      out.style.marginLeft = "12px";
+      out.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>Sair';
+      out.addEventListener("click", logout);
+      chip.parentNode.appendChild(out);
+    }
   })();
 
   // Rolagem suave já é via CSS; aqui animamos as barras do dashboard ao carregar
