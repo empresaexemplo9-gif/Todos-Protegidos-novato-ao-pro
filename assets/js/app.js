@@ -743,6 +743,99 @@
     });
   }
 
+  // ---- Meus clientes: CRUD (Supabase/local) ----
+  var clientesRoot = document.getElementById("clientesRoot");
+  if (clientesRoot) {
+    var C_EDIT = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
+    var C_TRASH = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>';
+    var C_STATUS = { lead: "Lead", ativo: "Ativo", inativo: "Inativo" };
+    var clientes = [];
+    var addBtn = document.getElementById("addCliente");
+
+    function cEsc(s) { return (s == null ? "" : String(s)).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+    function cIni(n) { return (n || "?").split(/\s+/).map(function (w) { return w.charAt(0); }).slice(0, 2).join("").toUpperCase(); }
+    function cBadge(s) { return s === "ativo" ? "badge" : s === "inativo" ? "badge badge-danger" : "badge badge-blue"; }
+    function cFind(id) { return clientes.filter(function (c) { return c.id === id; })[0]; }
+    function cEmpty(msg) { clientesRoot.innerHTML = '<div class="gestao-empty">' + msg + '</div>'; }
+
+    function cRender() {
+      if (!clientes.length) { cEmpty('Você ainda não cadastrou clientes. Clique em <strong>“+ Novo cliente”</strong> para começar.'); return; }
+      var rows = clientes.map(function (c) {
+        return '<tr>' +
+          '<td><div class="who"><span class="avatar-sm">' + cIni(c.nome) + '</span><div><div style="font-weight:600">' + cEsc(c.nome) + '</div><div class="muted" style="font-size:var(--tp-fs-xs)">' + cEsc(c.email) + '</div></div></div></td>' +
+          '<td>' + (cEsc(c.telefone) || "—") + '</td>' +
+          '<td>' + (cEsc(c.veiculo) || "—") + '</td>' +
+          '<td><span class="' + cBadge(c.status) + '">' + (C_STATUS[c.status] || "—") + '</span></td>' +
+          '<td style="text-align:right;white-space:nowrap"><button class="icon-btn-sm" data-edit="' + c.id + '" aria-label="Editar">' + C_EDIT + '</button> <button class="icon-btn-sm" data-del="' + c.id + '" aria-label="Excluir">' + C_TRASH + '</button></td>' +
+          '</tr>';
+      }).join("");
+      clientesRoot.innerHTML = '<div class="card" style="padding:6px"><div class="table-wrap"><table class="table"><thead><tr><th>Cliente</th><th>Telefone</th><th>Veículo</th><th>Status</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div></div>';
+      Array.prototype.forEach.call(clientesRoot.querySelectorAll("[data-edit]"), function (b) { b.addEventListener("click", function () { cForm(cFind(b.getAttribute("data-edit"))); }); });
+      Array.prototype.forEach.call(clientesRoot.querySelectorAll("[data-del]"), function (b) { b.addEventListener("click", function () { cDel(cFind(b.getAttribute("data-del"))); }); });
+    }
+
+    function cField(label, name, val, type) {
+      return '<label class="m-field"><span>' + label + '</span><input name="' + name + '" type="' + (type || "text") + '" value="' + cEsc(val) + '"></label>';
+    }
+    function cForm(c) {
+      var editing = !!c; c = c || {};
+      var ov = document.createElement("div"); ov.className = "modal-overlay";
+      ov.innerHTML = '<div class="modal" role="dialog" aria-modal="true">' +
+        '<h3 style="margin:0">' + (editing ? "Editar cliente" : "Novo cliente") + '</h3>' +
+        '<form class="m-form">' +
+          cField("Nome*", "nome", c.nome) +
+          '<div class="m-row">' + cField("Telefone / WhatsApp", "telefone", c.telefone) + cField("E-mail", "email", c.email, "email") + '</div>' +
+          '<div class="m-row">' + cField("Documento (CPF/CNPJ)", "documento", c.documento) + cField("Veículo", "veiculo", c.veiculo) + '</div>' +
+          '<label class="m-field"><span>Status</span><select name="status">' +
+            ["lead", "ativo", "inativo"].map(function (s) { return '<option value="' + s + '"' + (c.status === s ? " selected" : "") + '>' + C_STATUS[s] + '</option>'; }).join("") +
+          '</select></label>' +
+          '<label class="m-field"><span>Observações</span><textarea name="obs" rows="2">' + cEsc(c.obs) + '</textarea></label>' +
+          '<div class="m-msg" hidden></div>' +
+          '<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:4px"><button type="button" class="btn btn-ghost btn-sm" data-cancel>Cancelar</button><button type="submit" class="btn btn-primary btn-sm">' + (editing ? "Salvar" : "Adicionar") + '</button></div>' +
+        '</form></div>';
+      document.body.appendChild(ov); document.body.classList.add("nav-locked");
+      function close() { ov.parentNode && ov.parentNode.removeChild(ov); document.body.classList.remove("nav-locked"); }
+      ov.addEventListener("click", function (e) { if (e.target === ov) close(); });
+      ov.querySelector("[data-cancel]").addEventListener("click", close);
+      var form = ov.querySelector(".m-form");
+      var nameInput = form.querySelector('[name="nome"]'); if (nameInput) nameInput.focus();
+      function msg(t) { var m = form.querySelector(".m-msg"); m.textContent = t; m.hidden = false; }
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        var d = {};
+        Array.prototype.forEach.call(form.querySelectorAll("[name]"), function (el) { d[el.name] = (el.value || "").trim(); });
+        if (!d.nome) return msg("Informe o nome do cliente.");
+        var btn = form.querySelector('[type="submit"]'); btn.disabled = true;
+        var p = editing ? TPData.updateCliente(c.id, d) : TPData.addCliente(d);
+        p.then(function (res) {
+          btn.disabled = false;
+          if (res && res.ok === false) return msg(res.error || "Não foi possível salvar.");
+          close(); cReload();
+        }, function () { btn.disabled = false; msg("Erro de conexão. Tente novamente."); });
+      });
+    }
+
+    function cDel(c) {
+      if (!c) return;
+      if (!window.confirm('Excluir o cliente "' + c.nome + '"? Esta ação não pode ser desfeita.')) return;
+      TPData.deleteCliente(c.id).then(cReload);
+    }
+
+    function cReload() {
+      cEmpty("Carregando clientes…");
+      return TPData.listClientes().then(function (list) { clientes = list || []; cRender(); },
+        function () { cEmpty('Não foi possível carregar seus clientes. Se as tabelas ainda não existem no Supabase, rode <code>db/migrations.sql</code> no SQL Editor.'); });
+    }
+
+    if (addBtn) addBtn.addEventListener("click", function () { cForm(null); });
+    if (window.TPData) {
+      TPData.session().then(function (s) {
+        if (!s) { window.location.href = "login.html"; return; }
+        cReload();
+      }, function () { cReload(); });
+    } else { cReload(); }
+  }
+
   // ---- Reflete a sessão (nome/perfil) e injeta o botão "Sair" ----
   (function () {
     var chip = document.querySelector(".user-chip");

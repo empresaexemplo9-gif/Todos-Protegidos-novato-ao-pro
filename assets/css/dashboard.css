@@ -174,3 +174,18 @@ body.nav-locked { overflow: hidden; }
 }
 @media (max-width: 560px) { .kpis { grid-template-columns: 1fr; } .content { padding: 20px 16px 40px; } .topbar { padding: 14px 16px; } .welcome { flex-direction: column; align-items: flex-start; } }
 @media (max-width: 420px) { .content { padding: 16px 12px 32px; } }
+
+/* ---------- Modal + utilidades de CRUD ---------- */
+.modal-overlay { position: fixed; inset: 0; background: rgba(8,16,66,.5); display: grid; place-items: center; padding: 20px; z-index: 200; }
+.modal { background: #fff; border-radius: var(--tp-radius-lg); box-shadow: var(--tp-shadow-lg); padding: 24px; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; }
+.m-form { display: flex; flex-direction: column; gap: 12px; margin-top: 10px; }
+.m-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.m-field { display: flex; flex-direction: column; gap: 5px; font-size: var(--tp-fs-sm); }
+.m-field > span { font-weight: 600; color: var(--tp-slate); }
+.m-field input, .m-field select, .m-field textarea { font: inherit; padding: 10px 12px; border: 1px solid var(--tp-line); border-radius: var(--tp-radius-sm); background: var(--tp-bg); color: var(--tp-ink); width: 100%; }
+.m-field input:focus, .m-field select:focus, .m-field textarea:focus { outline: none; border-color: var(--tp-green-400); box-shadow: var(--tp-ring); }
+.m-msg { color: var(--tp-danger); font-size: var(--tp-fs-sm); }
+.avatar-sm { width: 34px; height: 34px; border-radius: 50%; background: var(--tp-grad-brand); color: #fff; display: inline-grid; place-items: center; font-weight: 700; font-size: var(--tp-fs-xs); font-family: var(--tp-font-sans); flex: none; }
+.icon-btn-sm { width: 32px; height: 32px; border-radius: var(--tp-radius-sm); border: 1px solid var(--tp-line); background: #fff; color: var(--tp-slate); cursor: pointer; display: inline-grid; place-items: center; vertical-align: middle; }
+.icon-btn-sm:hover { background: var(--tp-bg-alt); color: var(--tp-ink); }
+@media (max-width: 480px) { .m-row { grid-template-columns: 1fr; } }

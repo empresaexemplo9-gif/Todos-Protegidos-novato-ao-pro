@@ -33,7 +33,7 @@
       { id: "dashboard", label: "Visão geral",          href: "dashboard.html",        icon: "grid",   match: ["dashboard.html", ""] },
       { id: "trilha",    label: "Trilha de treinamento", href: "aula.html",             icon: "book",   match: ["aula.html", "aula-abordagem.html", "quiz.html"] },
       { id: "vendas",    label: "Minhas vendas",         href: "dashboard.html#vendas", icon: "dollar", state: "soon" },
-      { id: "clientes",  label: "Meus clientes",         href: "#",                     icon: "users",  state: "soon" }
+      { id: "clientes",  label: "Meus clientes",         href: "clientes.html",         icon: "users",  match: ["clientes.html"] }
     ] },
     { section: "Operação", items: [
       { id: "protocolos", label: "Padrões & protocolos", href: "protocolos.html", icon: "file", match: ["protocolos.html"] },

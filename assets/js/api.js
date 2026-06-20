@@ -167,7 +167,24 @@
       m.forEach(function (mod) { mod.itens = mod.itens.filter(function (it) { return it.id !== id; }); });
       lsSet("tp_modulos", m); return Promise.resolve({ ok: true });
     },
-    resetModules: function () { var d = modulosDefault(); lsSet("tp_modulos", d); return Promise.resolve({ ok: true }); }
+    resetModules: function () { var d = modulosDefault(); lsSet("tp_modulos", d); return Promise.resolve({ ok: true }); },
+
+    listClientes: function () { return Promise.resolve(lsGet("tp_clientes", [])); },
+    addCliente: function (d) {
+      var arr = lsGet("tp_clientes", []);
+      var c = { id: uid(), nome: d.nome, email: d.email || "", telefone: d.telefone || "", documento: d.documento || "", veiculo: d.veiculo || "", status: d.status || "lead", obs: d.obs || "", criado_em: new Date().toISOString() };
+      arr.unshift(c); lsSet("tp_clientes", arr);
+      return Promise.resolve({ ok: true, cliente: c });
+    },
+    updateCliente: function (id, d) {
+      var arr = lsGet("tp_clientes", []);
+      arr.forEach(function (c) { if (c.id === id) { c.nome = d.nome; c.email = d.email; c.telefone = d.telefone; c.documento = d.documento; c.veiculo = d.veiculo; c.status = d.status; c.obs = d.obs; } });
+      lsSet("tp_clientes", arr); return Promise.resolve({ ok: true });
+    },
+    deleteCliente: function (id) {
+      lsSet("tp_clientes", lsGet("tp_clientes", []).filter(function (c) { return c.id !== id; }));
+      return Promise.resolve({ ok: true });
+    }
   };
 
   // =================== Modo SUPABASE ===================
@@ -298,7 +315,30 @@
     deleteItem: function (id) {
       return sb.from("itens").delete().eq("id", id).then(function (r) { return { ok: !r.error, error: r.error && traduzErro(r.error.message) }; });
     },
-    resetModules: function () { return Promise.resolve({ ok: false, error: "Indisponível no modo nuvem." }); }
+    resetModules: function () { return Promise.resolve({ ok: false, error: "Indisponível no modo nuvem." }); },
+
+    listClientes: function () {
+      return sb.auth.getUser().then(function (r) {
+        var u = r.data && r.data.user; if (!u) return [];
+        return sb.from("clientes").select("*").eq("user_id", u.id).order("criado_em", { ascending: false })
+          .then(function (res) { if (res.error) throw res.error; return res.data || []; });
+      });
+    },
+    addCliente: function (d) {
+      return sb.auth.getUser().then(function (r) {
+        var u = r.data && r.data.user; if (!u) return { ok: false, error: "Sessão expirada." };
+        return sb.from("clientes").insert({ user_id: u.id, nome: d.nome, email: d.email, telefone: d.telefone, documento: d.documento, veiculo: d.veiculo, status: d.status || "lead", obs: d.obs }).select().single()
+          .then(function (res) { return res.error ? { ok: false, error: traduzErro(res.error.message) } : { ok: true, cliente: res.data }; });
+      });
+    },
+    updateCliente: function (id, d) {
+      return sb.from("clientes").update({ nome: d.nome, email: d.email, telefone: d.telefone, documento: d.documento, veiculo: d.veiculo, status: d.status, obs: d.obs }).eq("id", id)
+        .then(function (res) { return res.error ? { ok: false, error: traduzErro(res.error.message) } : { ok: true }; });
+    },
+    deleteCliente: function (id) {
+      return sb.from("clientes").delete().eq("id", id)
+        .then(function (res) { return res.error ? { ok: false, error: traduzErro(res.error.message) } : { ok: true }; });
+    }
   };
 
   var impl = hasSB ? Cloud : Local;
@@ -325,6 +365,10 @@
     deleteModule: function (id) { return impl.deleteModule(id); },
     addItem: function (m, it) { return impl.addItem(m, it); },
     deleteItem: function (id) { return impl.deleteItem(id); },
-    resetModules: function () { return impl.resetModules(); }
+    resetModules: function () { return impl.resetModules(); },
+    listClientes: function () { return impl.listClientes(); },
+    addCliente: function (d) { return impl.addCliente(d); },
+    updateCliente: function (id, d) { return impl.updateCliente(id, d); },
+    deleteCliente: function (id) { return impl.deleteCliente(id); }
   };
 })();
