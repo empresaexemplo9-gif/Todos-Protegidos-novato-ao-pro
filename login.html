@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Entrar — Todos Protegidos</title>
+  <meta name="description" content="Acesse a plataforma da Todos Protegidos: área do consultor e administração.">
+  <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+  <meta name="theme-color" content="#2536cf">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/tokens.css">
+  <link rel="stylesheet" href="assets/css/main.css">
+  <style>
+    .auth { min-height: 100vh; display: grid; grid-template-columns: 1.05fr .95fr; }
+    .auth-aside { background: var(--tp-grad-deep); color: #fff; padding: 56px 48px; display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden; }
+    .auth-aside::before { content: ""; position: absolute; inset: 0; background: radial-gradient(680px 420px at 110% -10%, rgba(20,194,173,.35), transparent 60%); pointer-events: none; }
+    .auth-aside .brand img { height: 40px; filter: brightness(0) invert(1); }
+    .auth-aside h1 { color: #fff; font-size: var(--tp-fs-3xl); max-width: 14ch; }
+    .auth-aside p { color: rgba(255,255,255,.85); max-width: 38ch; }
+    .auth-main { display: grid; place-items: center; padding: 40px 24px; background: var(--tp-bg); }
+    .auth-card { width: 100%; max-width: 400px; }
+    .auth-card h2 { font-size: var(--tp-fs-2xl); }
+    .field { margin-bottom: 16px; }
+    .field label { display: block; font-family: var(--tp-font-sans); font-weight: var(--tp-fw-semi); font-size: var(--tp-fs-sm); margin-bottom: 6px; color: var(--tp-ink); }
+    .field input { width: 100%; padding: 12px 14px; border: 1.5px solid var(--tp-line); border-radius: var(--tp-radius-sm); font: inherit; color: var(--tp-ink); background: #fff; transition: border-color var(--tp-transition), box-shadow var(--tp-transition); }
+    .field input:focus { outline: none; border-color: var(--tp-green-400); box-shadow: var(--tp-ring); }
+    .form-msg { display: none; padding: 11px 14px; border-radius: var(--tp-radius-sm); font-size: var(--tp-fs-sm); margin-bottom: 14px; }
+    .form-msg.show { display: block; }
+    .form-msg.err { background: #fde6e6; color: var(--tp-danger); }
+    .form-msg.ok { background: var(--tp-green-50); color: var(--tp-green-700); }
+    .auth-foot { text-align: center; margin-top: 18px; font-size: var(--tp-fs-sm); color: var(--tp-slate); }
+    .auth-foot a { font-weight: 600; }
+    @media (max-width: 860px) { .auth { grid-template-columns: 1fr; } .auth-aside { display: none; } }
+  </style>
+</head>
+<body>
+  <main class="auth">
+    <aside class="auth-aside">
+      <a class="brand" href="index.html"><img src="assets/img/logo.svg" alt="Todos Protegidos"></a>
+      <div>
+        <h1>Plataforma do consultor Todos Protegidos</h1>
+        <p>Entre para acessar sua trilha de formação, vendas e materiais. Administradores acessam a gestão de conteúdo.</p>
+      </div>
+      <span style="color:rgba(255,255,255,.6);font-size:var(--tp-fs-xs)">© 2026 Todos Protegidos · Proteção Veicular</span>
+    </aside>
+
+    <section class="auth-main">
+      <div class="auth-card">
+        <span class="eyebrow">Acesso à plataforma</span>
+        <h2>Entrar</h2>
+        <p class="muted" style="margin-top:-4px">Ainda não tem acesso? <a href="cadastro.html">Criar meu acesso</a>.</p>
+
+        <div id="loginMsg" class="form-msg"></div>
+
+        <form id="loginForm" novalidate>
+          <div class="field">
+            <label for="login">Usuário ou e-mail</label>
+            <input id="login" name="login" type="text" autocomplete="username" placeholder="admin ou seu@email.com" required>
+          </div>
+          <div class="field">
+            <label for="senha">Senha</label>
+            <input id="senha" name="senha" type="password" autocomplete="current-password" placeholder="Sua senha" required>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Entrar</button>
+        </form>
+
+        <p class="auth-foot"><a href="index.html">← Voltar para a página inicial</a></p>
+      </div>
+    </section>
+  </main>
+
+  <script src="assets/js/app.js"></script>
+</body>
+</html>

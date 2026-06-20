@@ -364,11 +364,11 @@
         return showMsg("Já existe um acesso com esse e-mail. Tente entrar.", false);
       }
 
-      var conta = { nome: nome, email: email, telefone: telefone, criadoEm: new Date().toISOString() };
+      var conta = { nome: nome, email: email, telefone: telefone, senha: senha, role: "consultor", criadoEm: new Date().toISOString() };
       consultores.push(conta);
       try {
         localStorage.setItem("tp_consultores", JSON.stringify(consultores));
-        localStorage.setItem("tp_sessao", JSON.stringify({ nome: nome, email: email }));
+        localStorage.setItem("tp_sessao", JSON.stringify({ nome: nome, email: email, role: "consultor" }));
       } catch (err) {}
 
       showMsg("Acesso criado com sucesso! Redirecionando para a plataforma…", true);
@@ -376,6 +376,54 @@
       setTimeout(function () { window.location.href = "dashboard.html"; }, 1400);
     });
   }
+
+  // ---- Login (consultor + administrador) ----
+  var loginForm = document.getElementById("loginForm");
+  if (loginForm) {
+    var ADMIN = { user: "admin", senha: "admin2026" };
+    var lmsg = document.getElementById("loginMsg");
+    function lShow(text, ok) {
+      lmsg.textContent = text;
+      lmsg.className = "form-msg show " + (ok ? "ok" : "err");
+    }
+    loginForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var user = (document.getElementById("login").value || "").trim();
+      var pass = document.getElementById("senha").value || "";
+      var ukey = user.toLowerCase();
+
+      if (ukey === ADMIN.user && pass === ADMIN.senha) {
+        try { localStorage.setItem("tp_sessao", JSON.stringify({ nome: "Administrador", email: "admin", role: "admin" })); } catch (err) {}
+        lShow("Bem-vindo, Administrador! Redirecionando…", true);
+        loginForm.querySelector('button[type="submit"]').disabled = true;
+        return setTimeout(function () { window.location.href = "dashboard.html"; }, 1000);
+      }
+
+      var consultores = [];
+      try { consultores = JSON.parse(localStorage.getItem("tp_consultores") || "[]"); } catch (err) {}
+      var conta = consultores.filter(function (c) { return c.email === ukey && c.senha === pass; })[0];
+      if (conta) {
+        try { localStorage.setItem("tp_sessao", JSON.stringify({ nome: conta.nome, email: conta.email, role: "consultor" })); } catch (err) {}
+        lShow("Acesso liberado! Redirecionando…", true);
+        loginForm.querySelector('button[type="submit"]').disabled = true;
+        return setTimeout(function () { window.location.href = "dashboard.html"; }, 1000);
+      }
+      lShow("Usuário ou senha inválidos. Verifique e tente novamente.", false);
+    });
+  }
+
+  // ---- Reflete a sessão (nome/perfil) no topo das telas internas ----
+  (function () {
+    var chip = document.querySelector(".user-chip");
+    if (!chip) return;
+    var s = null;
+    try { s = JSON.parse(localStorage.getItem("tp_sessao") || "null"); } catch (err) {}
+    if (!s || !s.nome) return;
+    var nm = chip.querySelector(".nm"); if (nm) nm.textContent = s.nome;
+    var rl = chip.querySelector(".rl"); if (rl) rl.textContent = s.role === "admin" ? "Administrador" : "Consultor";
+    var av = chip.querySelector(".avatar");
+    if (av) av.textContent = s.nome.split(/\s+/).map(function (w) { return w.charAt(0); }).slice(0, 2).join("").toUpperCase();
+  })();
 
   // Rolagem suave já é via CSS; aqui animamos as barras do dashboard ao carregar
   window.addEventListener("load", function () {
