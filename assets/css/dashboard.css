@@ -12,7 +12,7 @@ body.dash { background: var(--tp-bg); }
   padding: 22px 18px; position: sticky; top: 0; height: 100vh;
   display: flex; flex-direction: column; gap: 8px;
 }
-.sidebar .brand img { height: 34px; filter: brightness(0) invert(1); }
+.sidebar .brand img { height: 44px; }
 .sidebar-brand { padding: 6px 8px 22px; }
 .side-label { font-size: var(--tp-fs-xs); text-transform: uppercase; letter-spacing: .12em; color: #6e8d7d; padding: 16px 12px 8px; }
 .side-link {
@@ -27,6 +27,7 @@ body.dash { background: var(--tp-bg); }
 .side-link.active svg { opacity: 1; }
 .side-badge { margin-left: auto; background: var(--tp-amber-400); color: #081042; font-size: 11px; font-weight: 700; padding: 1px 8px; border-radius: 999px; }
 .side-foot { margin-top: auto; }
+.side-credit { margin-top: 14px; text-align: center; }
 .side-card { background: rgba(255,255,255,.06); border-radius: var(--tp-radius); padding: 16px; }
 .side-card .lbl { font-size: var(--tp-fs-xs); color: #9bbbab; }
 
