@@ -71,7 +71,7 @@ ul { margin: 0; padding: 0; list-style: none; }
   white-space: nowrap;
 }
 .btn:active { transform: translateY(1px); }
-.btn-primary { background: var(--tp-grad-brand); color: #fff; box-shadow: var(--tp-shadow-brand); }
+.btn-primary { background: var(--tp-grad-brand); background-origin: border-box; color: #fff; box-shadow: var(--tp-shadow-brand); }
 .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 18px 34px -12px rgba(27, 39, 180, .5); color: #fff; }
 .btn-ghost { background: #fff; color: var(--tp-green-700); border-color: var(--tp-line); }
 .btn-ghost:hover { border-color: var(--tp-green-300); color: var(--tp-green-700); transform: translateY(-2px); }
