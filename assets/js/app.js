@@ -648,6 +648,54 @@
     }, function () { window.location.href = "login.html"; });
   }
 
+  // ---- Painel do admin: progresso da equipe ----
+  var equipeApp = document.getElementById("equipeApp");
+  if (equipeApp) {
+    var eesc = function (s) { var d = document.createElement("div"); d.textContent = s == null ? "" : s; return d.innerHTML; };
+    TPData.session().then(function (s) {
+      if (!s) { window.location.href = "login.html"; return; }
+      if (!(s.role === "admin" || s.role === "superadmin")) { equipeApp.innerHTML = '<div class="gestao-empty" style="padding:48px">Acesso restrito a administradores.</div>'; return; }
+      Promise.all([TPData.listModules(), TPData.listTeam(), TPData.listAllProgress()]).then(function (res) {
+        var mods = res[0] || [], team = res[1] || [], prog = res[2] || [];
+        var totalItens = 0; mods.forEach(function (m) { totalItens += (m.itens || []).length; });
+        var byUser = {};
+        prog.forEach(function (p) { (byUser[p.user_id] = byUser[p.user_id] || {})[p.item_id] = 1; });
+        var consultores = team.filter(function (u) { return u.role === "consultor"; });
+        var lista = consultores.length ? consultores : team;
+
+        var somaPct = 0, concluintes = 0;
+        var linhas = lista.map(function (u) {
+          var done = byUser[u.id] || {};
+          var d = Object.keys(done).length;
+          var pct = totalItens ? Math.round(d / totalItens * 100) : 0;
+          somaPct += pct; if (totalItens && d >= totalItens) concluintes++;
+          var modsComp = 0; mods.forEach(function (m) { var its = (m.itens || []); if (its.length && its.every(function (it) { return done[it.id]; })) modsComp++; });
+          var papel = u.titulo || (u.role === "admin" ? "Administrador" : u.role === "superadmin" ? "Superadmin" : "Consultor");
+          return { nome: u.nome, papel: papel, d: d, pct: pct, modsComp: modsComp };
+        }).sort(function (a, b) { return b.pct - a.pct; });
+
+        var media = lista.length ? Math.round(somaPct / lista.length) : 0;
+        var resumo = document.getElementById("equipeResumo");
+        if (resumo) resumo.innerHTML =
+          '<div class="kpi"><div class="val">' + lista.length + '</div><div class="lbl">Consultores</div></div>' +
+          '<div class="kpi"><div class="val">' + media + '%</div><div class="lbl">Progresso médio</div></div>' +
+          '<div class="kpi"><div class="val">' + concluintes + '</div><div class="lbl">Concluíram a trilha</div></div>' +
+          '<div class="kpi"><div class="val">' + mods.length + '</div><div class="lbl">Módulos na trilha</div></div>';
+
+        if (!lista.length) { equipeApp.innerHTML = '<div class="gestao-empty" style="padding:40px">Nenhum consultor cadastrado ainda.</div>'; return; }
+
+        var html = '<div class="panel"><div class="panel-head"><h3>Consultores</h3><span class="badge">' + lista.length + '</span></div><table class="table"><thead><tr><th>Consultor</th><th>Perfil</th><th>Aulas</th><th>Progresso</th><th>Módulos</th></tr></thead><tbody>';
+        linhas.forEach(function (r) {
+          html += '<tr><td>' + eesc(r.nome) + '</td><td>' + eesc(r.papel) + '</td><td>' + r.d + '/' + totalItens + '</td>' +
+                  '<td style="min-width:150px"><div class="progress" style="display:inline-block;width:90px;vertical-align:middle"><i style="width:' + r.pct + '%"></i></div> ' + r.pct + '%</td>' +
+                  '<td>' + r.modsComp + '/' + mods.length + '</td></tr>';
+        });
+        html += '</tbody></table></div>';
+        equipeApp.innerHTML = html;
+      }, function () { equipeApp.innerHTML = '<div class="gestao-empty" style="padding:40px">Não foi possível carregar os dados da equipe.</div>'; });
+    }, function () { window.location.href = "login.html"; });
+  }
+
   // ---- Cadastro do consultor (criar o próprio acesso) ----
   var cadastroForm = document.getElementById("cadastroForm");
   if (cadastroForm) {

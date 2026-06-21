@@ -38,7 +38,8 @@
     { section: "Operação", items: [
       { id: "protocolos", label: "Padrões & protocolos", href: "protocolos.html", icon: "file", match: ["protocolos.html"] },
       { id: "scripts",    label: "Biblioteca de scripts", href: "scripts.html",   icon: "chat", match: ["scripts.html"] },
-      { id: "gestao",     label: "Gestão de conteúdo",    href: "gestao.html",    icon: "edit", match: ["gestao.html", "prova.html"], roles: ["admin", "superadmin"] }
+      { id: "gestao",     label: "Gestão de conteúdo",    href: "gestao.html",    icon: "edit", match: ["gestao.html", "prova.html"], roles: ["admin", "superadmin"] },
+      { id: "equipe",     label: "Progresso da equipe",   href: "equipe.html",    icon: "users", match: ["equipe.html"], roles: ["admin", "superadmin"] }
     ] },
     { section: "Carreira", items: [
       { id: "ranking", label: "Ranking & metas", href: "ranking.html",            icon: "trophy", match: ["ranking.html"] },

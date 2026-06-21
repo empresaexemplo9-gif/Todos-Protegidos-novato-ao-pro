@@ -36,8 +36,10 @@ Nada no front-end precisa ser reescrito para ativar — basta configurar.
      ```
      *(Mesmo sem rodar esse update, qualquer usuário cujo nome contenha "Ubirani" já aparece como "Presidente da empresa" na interface.)*
 6. **(Opcional) Conteúdo completo da trilha** — rode [`supabase/conteudo.sql`](supabase/conteudo.sql).
-   - Cria **7 módulos** com aulas/roteiros e **10 questões por módulo** (baseados em SPIN, Challenger e Sandler aplicados à proteção veicular), no tenant `matriz`.
+   - Cria **9 módulos** (2 reservados ao Presidente + 7 de vendas) com aulas/roteiros e **10 questões por módulo** (SPIN, Challenger e Sandler aplicados à proteção veicular), no tenant `matriz`.
    - Idempotente: pula módulos que já existem. O admin pode editar tudo depois pela Gestão.
+7. **Painel da equipe (admin)** — rode [`supabase/equipe.sql`](supabase/equipe.sql).
+   - Cria a política que permite ao **admin enxergar o progresso dos consultores do seu tenant** (página "Progresso da equipe"). Já incluído no `schema.sql` para instalações novas.
 
 ### 3. Pegar as chaves de API
 1. **Project Settings → API**.

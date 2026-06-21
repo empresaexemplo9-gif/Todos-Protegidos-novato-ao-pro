@@ -169,6 +169,11 @@
     },
     resetModules: function () { var d = modulosDefault(); lsSet("tp_modulos", d); return Promise.resolve({ ok: true }); },
 
+    listTeam: function () {
+      return Promise.resolve(lsGet("tp_consultores", []).map(function (c) { return { id: c.email, nome: c.nome, role: c.role || "consultor", titulo: c.titulo || "" }; }));
+    },
+    listAllProgress: function () { return Promise.resolve([]); },
+
     listClientes: function () { return Promise.resolve(lsGet("tp_clientes", [])); },
     addCliente: function (d) {
       var arr = lsGet("tp_clientes", []);
@@ -360,6 +365,15 @@
     },
     resetModules: function () { return Promise.resolve({ ok: false, error: "Indisponível no modo nuvem." }); },
 
+    listTeam: function () {
+      return sb.from("profiles").select("id,nome,role,titulo")
+        .then(function (res) { return (res.data || []).map(function (p) { return { id: p.id, nome: p.nome || "(sem nome)", role: p.role || "consultor", titulo: p.titulo || "" }; }); });
+    },
+    listAllProgress: function () {
+      return sb.from("progresso").select("user_id,item_id")
+        .then(function (res) { return res.data || []; });
+    },
+
     listClientes: function () {
       return sb.auth.getUser().then(function (r) {
         var u = r.data && r.data.user; if (!u) return [];
@@ -467,6 +481,8 @@
     addItem: function (m, it) { return impl.addItem(m, it); },
     deleteItem: function (id) { return impl.deleteItem(id); },
     resetModules: function () { return impl.resetModules(); },
+    listTeam: function () { return impl.listTeam(); },
+    listAllProgress: function () { return impl.listAllProgress(); },
     listClientes: function () { return impl.listClientes(); },
     addCliente: function (d) { return impl.addCliente(d); },
     updateCliente: function (id, d) { return impl.updateCliente(id, d); },

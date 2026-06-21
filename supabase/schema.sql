@@ -182,6 +182,16 @@ drop policy if exists "progresso_delete_own" on public.progresso;
 create policy "progresso_delete_own" on public.progresso
   for delete using (user_id = auth.uid());
 
+-- admin enxerga o progresso dos usuários do seu tenant (painel da equipe)
+drop policy if exists "progresso_admin_select" on public.progresso;
+create policy "progresso_admin_select" on public.progresso
+  for select using (
+    public.is_admin() and exists (
+      select 1 from public.profiles p
+      where p.id = progresso.user_id and p.tenant_id = public.current_tenant_id()
+    )
+  );
+
 -- 8.2) TÍTULO/CARGO do perfil (ex.: "Presidente da empresa")
 alter table public.profiles add column if not exists titulo text;
 
