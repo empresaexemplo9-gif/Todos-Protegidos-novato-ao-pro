@@ -1,10 +1,15 @@
 -- ============================================================
--- TODOS PROTEGIDOS — Conteúdo COMPLETO da trilha (do novato ao pro)
--- 7 módulos · aulas com roteiros/scripts · 10 questões por módulo.
--- Baseado em SPIN Selling, Challenger Sale e Sandler, aplicados à
--- proteção veicular. Rode UMA VEZ no SQL Editor (depois de schema.sql,
--- progress.sql e quiz.sql). Idempotente: pula módulos já existentes.
--- Popula o tenant de slug 'matriz' (ajuste abaixo se for outro).
+-- TODOS PROTEGIDOS UNIVERSITY — Conteúdo da trilha (do novato ao pro)
+--
+-- Módulos 1 e 2: RESERVADOS para a filosofia/cultura da empresa —
+--   serão preenchidos pelo Presidente depois (ficam como espaço,
+--   sem provas, prontos para receber vídeos/aulas na Gestão).
+-- Módulos 3 a 9: trilha de vendas (SPIN, Challenger e Sandler
+--   aplicados à proteção veicular), com roteiros/scripts e 10 questões
+--   por módulo.
+--
+-- Rode UMA VEZ no SQL Editor (após schema.sql, progress.sql e quiz.sql).
+-- Idempotente: pula módulos que já existem. Popula o tenant 'matriz'.
 -- ============================================================
 do $$
 declare
@@ -15,16 +20,49 @@ begin
   if t is null then raise notice 'Tenant "matriz" nao encontrado. Crie o tenant antes.'; return; end if;
 
   -- =========================================================
-  -- MÓDULO 1 — Fundamentos da Proteção Veicular
+  -- MÓDULO 1 — Filosofia e Cultura (RESERVADO ao Presidente)
   -- =========================================================
-  select id into m from public.modulos where tenant_id = t and titulo = 'Módulo 1 · Fundamentos da Proteção Veicular';
+  select id into m from public.modulos where tenant_id = t and titulo = 'Módulo 1 · Filosofia e Cultura da Todos Protegidos';
   if m is null then
     insert into public.modulos (tenant_id, titulo, subtitulo, ordem)
-      values (t, 'Módulo 1 · Fundamentos da Proteção Veicular', 'O produto, as coberturas e a diferença para o seguro', 1)
+      values (t, 'Módulo 1 · Filosofia e Cultura da Todos Protegidos', 'Missão, visão e valores — conduzido pelo Presidente', 1)
+      returning id into m;
+    insert into public.itens (tenant_id, modulo_id, tipo, titulo, meta, descricao, ordem) values
+    (t, m, 'info', 'Aula 1.1 — Nossa filosofia (em breve)', 'Reservado ao Presidente',
+     'Este módulo é conduzido pelo Presidente da empresa.
+
+Em breve: missão, visão, valores e a cultura que tornam a Todos Protegidos uma referência em proteção veicular.
+
+(O Presidente vai adicionar aqui os vídeos e materiais pela Gestão de conteúdo.)', 1);
+    -- Sem prova: as questões serão definidas pelo Presidente.
+  end if;
+
+  -- =========================================================
+  -- MÓDULO 2 — Palavra do Presidente (RESERVADO)
+  -- =========================================================
+  select id into m from public.modulos where tenant_id = t and titulo = 'Módulo 2 · Palavra do Presidente';
+  if m is null then
+    insert into public.modulos (tenant_id, titulo, subtitulo, ordem)
+      values (t, 'Módulo 2 · Palavra do Presidente', 'Boas-vindas e propósito', 2)
+      returning id into m;
+    insert into public.itens (tenant_id, modulo_id, tipo, titulo, meta, descricao, ordem) values
+    (t, m, 'info', 'Aula 2.1 — Mensagem do Presidente (em breve)', 'Reservado ao Presidente',
+     'Espaço reservado para a mensagem de boas-vindas e os princípios do Presidente.
+
+O conteúdo (vídeo e aulas) será adicionado em breve pela Gestão de conteúdo.', 1);
+  end if;
+
+  -- =========================================================
+  -- MÓDULO 3 — Fundamentos da Proteção Veicular
+  -- =========================================================
+  select id into m from public.modulos where tenant_id = t and titulo = 'Módulo 3 · Fundamentos da Proteção Veicular';
+  if m is null then
+    insert into public.modulos (tenant_id, titulo, subtitulo, ordem)
+      values (t, 'Módulo 3 · Fundamentos da Proteção Veicular', 'O produto, as coberturas e a diferença para o seguro', 3)
       returning id into m;
 
     insert into public.itens (tenant_id, modulo_id, tipo, titulo, meta, descricao, ordem) values
-    (t, m, 'aula', 'Aula 1.1 — O que é proteção veicular', 'Conceito e diferença para seguro',
+    (t, m, 'aula', 'Aula 3.1 — O que é proteção veicular', 'Conceito e diferença para seguro',
      'OBJETIVO: entender o que vendemos e falar com segurança.
 
 PONTOS-CHAVE:
@@ -35,7 +73,7 @@ PONTOS-CHAVE:
 ROTEIRO DE FALA (90 segundos):
 "Proteção veicular funciona como uma grande rede de motoristas que se ajudam: todos contribuem com um valor mensal e, quando alguém sofre um prejuízo, a rede cobre. Por isso conseguimos um custo menor e menos burocracia que o seguro tradicional, com assistência 24 horas e cobertura pela tabela FIPE em caso de perda total."', 1),
 
-    (t, m, 'info', 'Aula 1.2 — Coberturas, FIPE e assistência 24h', 'O que está incluso',
+    (t, m, 'info', 'Aula 3.2 — Coberturas, FIPE e assistência 24h', 'O que está incluso',
      'COBERTURAS PADRÃO:
 - Roubo e furto
 - Colisão / perda total (indenização por 100% da tabela FIPE)
@@ -45,15 +83,12 @@ ROTEIRO DE FALA (90 segundos):
 
 DICA DE VENDA: traduza cobertura em tranquilidade. Ex.: "Se o carro for roubado hoje, você recebe 100% da FIPE — não fica no prejuízo nem sem carro para trabalhar."', 2),
 
-    (t, m, 'aula', 'Aula 1.3 — Carro x Moto: particularidades', 'Diferenças no atendimento',
+    (t, m, 'aula', 'Aula 3.3 — Carro x Moto: particularidades', 'Diferenças no atendimento',
      'CARRO: ticket maior, decisão mais racional, foco em patrimônio e família.
 MOTO: alto risco de roubo, decisão emocional/urgente, foco em "ferramenta de trabalho".
 
 ROTEIRO MOTO:
-"Para quem trabalha com a moto, ficar sem ela é ficar sem renda. A proteção garante que, se acontecer algo, você volta a rodar rápido — com guincho e indenização."', 3),
-
-    (t, m, 'file', 'Material — Glossário do associado', 'Termos essenciais',
-     'Rateio, FIPE, carência, vistoria prévia, cota de participação, terceiros, perda total, sinistro. Saiba explicar cada um em 1 frase simples.', 4);
+"Para quem trabalha com a moto, ficar sem ela é ficar sem renda. A proteção garante que, se acontecer algo, você volta a rodar rápido — com guincho e indenização."', 3);
 
     insert into public.questoes (tenant_id, modulo_id, enunciado, opcoes, correta, ordem) values
     (t, m, 'O que melhor define a proteção veicular?', '["Um seguro regulado pela SUSEP","Um sistema de rateio/mutualismo entre associados","Um financiamento do veículo","Uma garantia de fábrica"]'::jsonb, 1, 1),
@@ -69,16 +104,16 @@ ROTEIRO MOTO:
   end if;
 
   -- =========================================================
-  -- MÓDULO 2 — Mentalidade e Rotina de Alta Performance
+  -- MÓDULO 4 — Mentalidade e Rotina de Alta Performance
   -- =========================================================
-  select id into m from public.modulos where tenant_id = t and titulo = 'Módulo 2 · Mentalidade e Rotina de Alta Performance';
+  select id into m from public.modulos where tenant_id = t and titulo = 'Módulo 4 · Mentalidade e Rotina de Alta Performance';
   if m is null then
     insert into public.modulos (tenant_id, titulo, subtitulo, ordem)
-      values (t, 'Módulo 2 · Mentalidade e Rotina de Alta Performance', 'Disciplina, metas e funil de vendas', 2)
+      values (t, 'Módulo 4 · Mentalidade e Rotina de Alta Performance', 'Disciplina, metas e funil de vendas', 4)
       returning id into m;
 
     insert into public.itens (tenant_id, modulo_id, tipo, titulo, meta, descricao, ordem) values
-    (t, m, 'aula', 'Aula 2.1 — Mentalidade de dono', 'Atitude do profissional',
+    (t, m, 'aula', 'Aula 4.1 — Mentalidade de dono', 'Atitude do profissional',
      'PRINCÍPIOS:
 - Você é dono do seu resultado: atividade gera venda.
 - Constância vence talento: quem faz todos os dias, vende sempre.
@@ -86,7 +121,7 @@ ROTEIRO MOTO:
 
 RITUAL DIÁRIO: revise metas, prepare scripts, separe a base de contatos do dia, registre tudo no CRM.', 1),
 
-    (t, m, 'aula', 'Aula 2.2 — Metas e funil de vendas', 'Números que importam',
+    (t, m, 'aula', 'Aula 4.2 — Metas e funil de vendas', 'Números que importam',
      'FUNIL: Contatos -> Conversas -> Cotações -> Vistorias -> Fechamentos.
 REGRA: trabalhe de trás para frente. Quer 10 vendas/mês? Quantas cotações e contatos isso exige na sua taxa atual?
 
@@ -96,7 +131,7 @@ KPIs DO CONSULTOR:
 - Taxa de cotação em fechamento
 - Ticket médio e comissão', 2),
 
-    (t, m, 'info', 'Aula 2.3 — Gestão do tempo e CRM', 'Organização',
+    (t, m, 'info', 'Aula 4.3 — Gestão do tempo e CRM', 'Organização',
      'Blocos de tempo: prospecção de manhã, follow-up à tarde. Todo contato vira registro com próximo passo e data. Sem CRM, você perde dinheiro esquecido na agenda.', 3);
 
     insert into public.questoes (tenant_id, modulo_id, enunciado, opcoes, correta, ordem) values
@@ -113,16 +148,16 @@ KPIs DO CONSULTOR:
   end if;
 
   -- =========================================================
-  -- MÓDULO 3 — Prospecção e Abordagem
+  -- MÓDULO 5 — Prospecção e Abordagem
   -- =========================================================
-  select id into m from public.modulos where tenant_id = t and titulo = 'Módulo 3 · Prospecção e Abordagem';
+  select id into m from public.modulos where tenant_id = t and titulo = 'Módulo 5 · Prospecção e Abordagem';
   if m is null then
     insert into public.modulos (tenant_id, titulo, subtitulo, ordem)
-      values (t, 'Módulo 3 · Prospecção e Abordagem', 'Onde achar clientes e como iniciar a conversa', 3)
+      values (t, 'Módulo 5 · Prospecção e Abordagem', 'Onde achar clientes e como iniciar a conversa', 5)
       returning id into m;
 
     insert into public.itens (tenant_id, modulo_id, tipo, titulo, meta, descricao, ordem) values
-    (t, m, 'aula', 'Aula 3.1 — Canais de prospecção', 'De onde vêm os clientes',
+    (t, m, 'aula', 'Aula 5.1 — Canais de prospecção', 'De onde vêm os clientes',
      'CANAIS:
 - Indicação (o de maior conversão): sempre peça.
 - Sinaleiro / ponto de fluxo: abordagem rápida para captar contato.
@@ -131,7 +166,7 @@ KPIs DO CONSULTOR:
 
 REGRA DE OURO: prospecção é diária e em volume. Sem topo de funil, não há venda.', 1),
 
-    (t, m, 'aula', 'Aula 3.2 — Roteiro de abordagem no sinaleiro', 'Script de 15 a 30 segundos',
+    (t, m, 'aula', 'Aula 5.2 — Roteiro de abordagem no sinaleiro', 'Script de 15 a 30 segundos',
      'OBJETIVO DO SINALEIRO: NÃO é vender ali. É captar o contato para um atendimento consultivo depois.
 
 SCRIPT (15-30s):
@@ -142,7 +177,7 @@ REGRAS:
 - Não discuta preço no sinal.
 - Anote o contato e o modelo do veículo.', 2),
 
-    (t, m, 'aula', 'Aula 3.3 — Abordagem por WhatsApp', 'Primeira mensagem',
+    (t, m, 'aula', 'Aula 5.3 — Abordagem por WhatsApp', 'Primeira mensagem',
      'SCRIPT WHATSAPP (primeiro contato):
 "Oi, [nome]! Aqui é o [seu nome], da Todos Protegidos. Foi ótimo falar com você agora há pouco. Para eu montar sua cotação certinha, seu carro é o [modelo/ano]? Em 1 minutinho te passo o valor e o que está incluso."
 
@@ -165,16 +200,16 @@ DICAS:
   end if;
 
   -- =========================================================
-  -- MÓDULO 4 — Diagnóstico com SPIN Selling
+  -- MÓDULO 6 — Diagnóstico com SPIN Selling
   -- =========================================================
-  select id into m from public.modulos where tenant_id = t and titulo = 'Módulo 4 · Diagnóstico com SPIN Selling';
+  select id into m from public.modulos where tenant_id = t and titulo = 'Módulo 6 · Diagnóstico com SPIN Selling';
   if m is null then
     insert into public.modulos (tenant_id, titulo, subtitulo, ordem)
-      values (t, 'Módulo 4 · Diagnóstico com SPIN Selling', 'Perguntas que levam o cliente a decidir', 4)
+      values (t, 'Módulo 6 · Diagnóstico com SPIN Selling', 'Perguntas que levam o cliente a decidir', 6)
       returning id into m;
 
     insert into public.itens (tenant_id, modulo_id, tipo, titulo, meta, descricao, ordem) values
-    (t, m, 'aula', 'Aula 4.1 — As 4 perguntas SPIN', 'Situação, Problema, Implicação, Necessidade',
+    (t, m, 'aula', 'Aula 6.1 — As 4 perguntas SPIN', 'Situação, Problema, Implicação, Necessidade',
      'SPIN = roteiro de perguntas para venda consultiva:
 - SITUAÇÃO: entender o contexto. "Qual carro você tem e como usa no dia a dia?"
 - PROBLEMA: revelar a dor. "Hoje você tem alguma proteção? Já passou perrengue com guincho?"
@@ -183,7 +218,7 @@ DICAS:
 
 REGRA: ouça mais do que fala. Quem pergunta bem, conduz.', 1),
 
-    (t, m, 'aula', 'Aula 4.2 — Roteiro SPIN na proteção veicular', 'Script completo',
+    (t, m, 'aula', 'Aula 6.2 — Roteiro SPIN na proteção veicular', 'Script completo',
      'SCRIPT GUIADO:
 1) "Me conta: qual o veículo e pra que você mais usa ele?" (Situação)
 2) "Você já tem proteção hoje? O que te preocupa em ficar sem?" (Problema)
@@ -206,16 +241,16 @@ Depois da etapa 4, o cliente já quer a solução — aí você apresenta o plan
   end if;
 
   -- =========================================================
-  -- MÓDULO 5 — Apresentação de Valor (Challenger) + FIPE
+  -- MÓDULO 7 — Apresentação de Valor (Challenger)
   -- =========================================================
-  select id into m from public.modulos where tenant_id = t and titulo = 'Módulo 5 · Apresentação de Valor (Challenger)';
+  select id into m from public.modulos where tenant_id = t and titulo = 'Módulo 7 · Apresentação de Valor (Challenger)';
   if m is null then
     insert into public.modulos (tenant_id, titulo, subtitulo, ordem)
-      values (t, 'Módulo 5 · Apresentação de Valor (Challenger)', 'Ensinar, personalizar e mostrar o risco invisível', 5)
+      values (t, 'Módulo 7 · Apresentação de Valor (Challenger)', 'Ensinar, personalizar e mostrar o risco invisível', 7)
       returning id into m;
 
     insert into public.itens (tenant_id, modulo_id, tipo, titulo, meta, descricao, ordem) values
-    (t, m, 'aula', 'Aula 5.1 — Ensine o risco que o cliente não vê', 'Método Challenger',
+    (t, m, 'aula', 'Aula 7.1 — Ensine o risco que o cliente não vê', 'Método Challenger',
      'CHALLENGER = Ensinar, Personalizar, Assumir o controle.
 A ideia: trazer um insight que o cliente ainda não tinha.
 
@@ -225,7 +260,7 @@ EXEMPLOS DE INSIGHT:
 
 Personalize o insight para a realidade do cliente (uso, região, tipo de veículo).', 1),
 
-    (t, m, 'aula', 'Aula 5.2 — Ancoragem de valor e comparação', 'Preço x valor',
+    (t, m, 'aula', 'Aula 7.2 — Ancoragem de valor e comparação', 'Preço x valor',
      'TÉCNICA:
 - Ancore no risco evitado: "Quanto custaria repor seu carro hoje? A FIPE dele é R$ X. A proteção custa centavos por dia disso."
 - Compare custo/benefício, não só preço: assistência 24h, sem score, menos burocracia.
@@ -233,7 +268,7 @@ Personalize o insight para a realidade do cliente (uso, região, tipo de veícul
 
 EVITE: brigar por preço. Reposicione para valor.', 2),
 
-    (t, m, 'aula', 'Aula 5.3 — Roteiro de apresentação', 'Script',
+    (t, m, 'aula', 'Aula 7.3 — Roteiro de apresentação', 'Script',
      'SCRIPT:
 "Pelo que você me contou, o que mais pesa é [dor do cliente]. Nosso plano resolve assim: [cobertura ligada à dor]. Em caso de perda total, você recebe 100% da FIPE — hoje cerca de R$ [valor]. E tem guincho 24h pra você nunca ficar na mão. Tudo isso por R$ [mensalidade], menos que [comparação do dia a dia]."', 3);
 
@@ -246,21 +281,21 @@ EVITE: brigar por preço. Reposicione para valor.', 2),
     (t, m, 'Personalizar a apresentação é:', '["Usar o mesmo discurso para todos","Adaptar o insight à realidade do cliente","Falar só de você","Ignorar o diagnóstico"]'::jsonb, 1, 6),
     (t, m, 'Prova social na venda é:', '["Inventar números","Usar casos reais de associados atendidos","Prometer milagres","Mostrar só preço"]'::jsonb, 1, 7),
     (t, m, '"Assumir o controle" da conversa significa:', '["Ser grosseiro","Conduzir com firmeza e segurança, inclusive no preço","Falar sem parar","Aceitar tudo que o cliente impõe"]'::jsonb, 1, 8),
-    (t, m, 'Ao apresentar o plano, conecte sempre a cobertura à:', '["Sua comissão","Dor/necessidade que o cliente revelou","Tabela de preços do concorrente","Cor do carro"]'::jsonb, 1, 9),
+    (t, m, 'Ao apresentar o plano, conecte sempre a cobertura à:', '["Sua comissão","Dor/necessidade que o cliente revelou","Tabela do concorrente","Cor do carro"]'::jsonb, 1, 9),
     (t, m, 'Comparar a mensalidade com um gasto cotidiano serve para:', '["Confundir","Tornar o valor tangível e pequeno frente ao benefício","Esconder o preço","Aumentar a objeção"]'::jsonb, 1, 10);
   end if;
 
   -- =========================================================
-  -- MÓDULO 6 — Fechamento e Objeções (Sandler)
+  -- MÓDULO 8 — Fechamento e Tratamento de Objeções
   -- =========================================================
-  select id into m from public.modulos where tenant_id = t and titulo = 'Módulo 6 · Fechamento e Tratamento de Objeções';
+  select id into m from public.modulos where tenant_id = t and titulo = 'Módulo 8 · Fechamento e Tratamento de Objeções';
   if m is null then
     insert into public.modulos (tenant_id, titulo, subtitulo, ordem)
-      values (t, 'Módulo 6 · Fechamento e Tratamento de Objeções', 'Conduzir à decisão sem pressão', 6)
+      values (t, 'Módulo 8 · Fechamento e Tratamento de Objeções', 'Conduzir à decisão sem pressão', 8)
       returning id into m;
 
     insert into public.itens (tenant_id, modulo_id, tipo, titulo, meta, descricao, ordem) values
-    (t, m, 'aula', 'Aula 6.1 — Técnicas de fechamento', 'Pergunta de continuidade',
+    (t, m, 'aula', 'Aula 8.1 — Técnicas de fechamento', 'Pergunta de continuidade',
      'EM VEZ DE "Você quer fechar?", use a PERGUNTA DE CONTINUIDADE:
 "Para já deixar sua proteção ativa hoje, vou precisar confirmar alguns dados, ok?"
 
@@ -270,7 +305,7 @@ OUTRAS:
 
 REGRA: peça a venda com naturalidade. Quem não pede, não fecha.', 1),
 
-    (t, m, 'aula', 'Aula 6.2 — Tratando objeções (scripts)', 'Está caro / vou pensar / tenho seguro',
+    (t, m, 'aula', 'Aula 8.2 — Tratando objeções (scripts)', 'Está caro / vou pensar / tenho seguro',
      'TÉCNICA: acolher -> esclarecer -> reconduzir.
 
 "ESTÁ CARO":
@@ -296,16 +331,16 @@ REGRA: peça a venda com naturalidade. Quem não pede, não fecha.', 1),
   end if;
 
   -- =========================================================
-  -- MÓDULO 7 — Vistoria, Pós-venda e Retenção
+  -- MÓDULO 9 — Vistoria, Pós-venda e Retenção
   -- =========================================================
-  select id into m from public.modulos where tenant_id = t and titulo = 'Módulo 7 · Vistoria, Pós-venda e Retenção';
+  select id into m from public.modulos where tenant_id = t and titulo = 'Módulo 9 · Vistoria, Pós-venda e Retenção';
   if m is null then
     insert into public.modulos (tenant_id, titulo, subtitulo, ordem)
-      values (t, 'Módulo 7 · Vistoria, Pós-venda e Retenção', 'Ativar, encantar e fidelizar', 7)
+      values (t, 'Módulo 9 · Vistoria, Pós-venda e Retenção', 'Ativar, encantar e fidelizar', 9)
       returning id into m;
 
     insert into public.itens (tenant_id, modulo_id, tipo, titulo, meta, descricao, ordem) values
-    (t, m, 'aula', 'Aula 7.1 — Protocolo de vistoria', 'Ativação sem erro',
+    (t, m, 'aula', 'Aula 9.1 — Protocolo de vistoria', 'Ativação sem erro',
      'CHECKLIST DE VISTORIA:
 - Fotos nítidas: frente, traseira, laterais, painel (hodômetro), chassi e pneus.
 - Documento do veículo em foto (formato aceito pelo app; PDF normalmente não é aceito).
@@ -314,7 +349,7 @@ REGRA: peça a venda com naturalidade. Quem não pede, não fecha.', 1),
 
 Vistoria bem feita = ativação rápida e menos retrabalho.', 1),
 
-    (t, m, 'aula', 'Aula 7.2 — Pós-venda, indicação e reativação', 'Carteira que rende',
+    (t, m, 'aula', 'Aula 9.2 — Pós-venda, indicação e reativação', 'Carteira que rende',
      'PÓS-VENDA (script de boas-vindas):
 "[nome], sua proteção está ativa! Salva meu contato — qualquer necessidade de guincho ou dúvida, fala comigo direto. E se conhecer alguém que precise, sua indicação vale muito."
 
