@@ -28,12 +28,14 @@ begin
       values (t, 'Módulo 1 · Filosofia e Cultura da Todos Protegidos', 'Missão, visão e valores — conduzido pelo Presidente', 1)
       returning id into m;
     insert into public.itens (tenant_id, modulo_id, tipo, titulo, meta, descricao, ordem) values
-    (t, m, 'info', 'Aula 1.1 — Nossa filosofia (em breve)', 'Reservado ao Presidente',
-     'Este módulo é conduzido pelo Presidente da empresa.
-
-Em breve: missão, visão, valores e a cultura que tornam a Todos Protegidos uma referência em proteção veicular.
-
-(O Presidente vai adicionar aqui os vídeos e materiais pela Gestão de conteúdo.)', 1);
+    (t, m, 'aula', 'Aula 1.1 — Nossa história', 'A trajetória da Todos Protegidos',
+     'Espaço reservado — o Presidente vai gravar e subir o vídeo aqui (como a empresa nasceu e cresceu).', 1),
+    (t, m, 'aula', 'Aula 1.2 — Missão', 'Por que existimos',
+     'Espaço reservado — o Presidente vai gravar e subir o vídeo aqui (a missão da Todos Protegidos).', 2),
+    (t, m, 'aula', 'Aula 1.3 — Visão', 'Onde queremos chegar',
+     'Espaço reservado — o Presidente vai gravar e subir o vídeo aqui (a visão de futuro).', 3),
+    (t, m, 'aula', 'Aula 1.4 — Valores', 'No que acreditamos',
+     'Espaço reservado — o Presidente vai gravar e subir o vídeo aqui (os valores e a cultura).', 4);
     -- Sem prova: as questões serão definidas pelo Presidente.
   end if;
 
@@ -46,10 +48,10 @@ Em breve: missão, visão, valores e a cultura que tornam a Todos Protegidos uma
       values (t, 'Módulo 2 · Palavra do Presidente', 'Boas-vindas e propósito', 2)
       returning id into m;
     insert into public.itens (tenant_id, modulo_id, tipo, titulo, meta, descricao, ordem) values
-    (t, m, 'info', 'Aula 2.1 — Mensagem do Presidente (em breve)', 'Reservado ao Presidente',
-     'Espaço reservado para a mensagem de boas-vindas e os princípios do Presidente.
-
-O conteúdo (vídeo e aulas) será adicionado em breve pela Gestão de conteúdo.', 1);
+    (t, m, 'aula', 'Aula 2.1 — Mensagem de boas-vindas do Presidente', 'Abertura',
+     'Espaço reservado — o Presidente vai gravar e subir o vídeo de boas-vindas aqui.', 1),
+    (t, m, 'aula', 'Aula 2.2 — Nosso propósito e cultura', 'O jeito Todos Protegidos',
+     'Espaço reservado — o Presidente vai gravar e subir o vídeo aqui (propósito, cultura e expectativas com a equipe).', 2);
   end if;
 
   -- =========================================================
