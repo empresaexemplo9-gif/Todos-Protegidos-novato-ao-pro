@@ -2,9 +2,10 @@
 
 > **Deploy (GitHub Pages):** se o repositório for renomeado, o GitHub Pages é
 > desativado e o deploy passa a falhar em "Configure Pages" (`Resource not
-> accessible by integration`). Para religar: **Settings → Pages → Source:
-> "GitHub Actions"** (e repor o domínio personalizado, se houver). Depois, um
-> novo push na `main` publica normalmente.
+> accessible by integration`). Para religar: deixe o **repositório público**
+> (no plano gratuito o Pages só funciona em repo público) e em **Settings →
+> Pages → Source** selecione **"GitHub Actions"** (e reponha o domínio
+> personalizado, se houver). Depois, um novo push na `main` publica normalmente.
 
 A plataforma funciona em **dois modos**, decididos automaticamente:
 
