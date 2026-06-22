@@ -46,13 +46,13 @@ begin
   -- =========================================================
   update public.itens set descricao =
 'INTRODUÇÃO
-Para vender com segurança, o consultor precisa primeiro entender em profundidade o que está vendendo. Proteção veicular não é seguro, e confundir os dois é o erro que mais derruba a confiança do cliente. Esta aula constrói a base conceitual de tudo o que vem depois.
+Para vender com segurança, o consultor precisa primeiro entender em profundidade o que está vendendo. Saber explicar com precisão o que é a proteção veicular — uma associação regulamentada pela SUSEP — é o que mais constrói a confiança do cliente. Esta aula constrói a base conceitual de tudo o que vem depois.
 
 O QUE É, DE FATO
-A proteção veicular é um sistema de mutualismo: uma associação de pessoas que se unem e contribuem mensalmente para um fundo comum (rateio). Quando um associado sofre um prejuízo coberto — roubo, furto, colisão, perda total — esse fundo coletivo cobre o prejuízo. Ninguém "lucra" com a sua mensalidade da forma como uma seguradora lucra; o dinheiro é dos próprios associados, administrado pela associação para proteger todos.
+A proteção veicular é um sistema de mutualismo: uma associação de pessoas que se unem e contribuem mensalmente para um fundo comum (rateio). Quando um associado sofre um prejuízo coberto — roubo, furto, colisão, perda total — esse fundo coletivo cobre o prejuízo. O dinheiro é dos próprios associados, administrado pela associação para proteger todos. E, importante: a Todos Protegidos é uma associação regulamentada e fiscalizada pela SUSEP — ou seja, opera sob regras oficiais e supervisão do órgão do setor, o que traz segurança e garantia a quem adere.
 
 POR QUE ISSO IMPORTA NA VENDA
-Como não é seguro regulado pela SUSEP, a proteção veicular tem três vantagens práticas que o cliente sente no bolso e na vida:
+Mesmo sendo uma associação regulamentada pela SUSEP, a Todos Protegidos mantém um atendimento ágil, com vantagens práticas que o cliente sente no bolso e na vida:
 1. Adesão simples: sem análise de perfil rígida e, em geral, sem consulta a score de crédito. Isso abre a porta para quem o seguro tradicional recusa ou cobra caro (jovem, carro antigo, profissional de app, histórico de sinistro).
 2. Custo competitivo: como o modelo é de rateio e a burocracia é menor, a mensalidade costuma ser mais acessível.
 3. Agilidade: menos etapas para aderir e para ser atendido.
@@ -61,10 +61,10 @@ O PAPEL DO CONSULTOR
 Você é o elo de confiança. Sua função não é "empurrar" um produto, é traduzir um sistema de proteção para a realidade do cliente, com clareza e honestidade. Prometer o que não existe (por exemplo, "cobre tudo, sem carência") destrói a relação e gera cancelamento. Explicar bem constrói carteira fiel.
 
 ROTEIRO DE FALA (90 segundos)
-"Proteção veicular funciona como uma grande rede de motoristas que se ajudam: todos contribuem com um valor mensal e, quando alguém sofre um prejuízo, a rede cobre. Por ser uma associação, e não um seguro tradicional, conseguimos um custo menor, menos burocracia e adesão sem aquela análise pesada — com assistência 24 horas e indenização pela tabela FIPE em caso de perda total."
+"Proteção veicular funciona como uma grande rede de motoristas que se ajudam: todos contribuem com um valor mensal e, quando alguém sofre um prejuízo, a rede cobre. A Todos Protegidos é uma associação de proteção veicular regulamentada pela SUSEP, o que te dá segurança e garantia, com adesão ágil, assistência 24 horas e indenização pela tabela FIPE em caso de perda total."
 
 ERROS A EVITAR
-- Dizer que "é a mesma coisa que seguro" (não é, e isso pode gerar problema).
+- Dizer que "não tem fiscalização" — somos uma associação regulamentada pela SUSEP.
 - Omitir a existência de carência.
 - Falar em termos técnicos sem traduzir o benefício.'
    where tenant_id = t and titulo = 'Aula 3.1 — O que é proteção veicular';
@@ -121,8 +121,8 @@ Descubra o uso antes de falar de plano. "Como você usa o veículo no dia a dia?
     (t, m, 'info', 'Aula 3.4 — Leitura aprofundada: proteção x seguro na prática', 'Material de estudo',
 'Este texto consolida tudo o que um consultor precisa saber para nunca mais travar diante de "qual a diferença para o seguro?".
 
-1. NATUREZA JURÍDICA
-O seguro é um contrato regulado pela SUSEP, vendido por seguradoras, com apólice e regras padronizadas. A proteção veicular é uma relação associativa: você adere a uma associação/cooperativa e participa de um rateio de prejuízos. Não há "apólice de seguro", há um regulamento da associação. Por isso o consultor nunca deve usar a palavra "seguro" como sinônimo — além de incorreto, pode gerar reclamação.
+1. NATUREZA E REGULAMENTAÇÃO
+A Todos Protegidos é uma associação de proteção veicular: você adere à associação e participa de um rateio de prejuízos entre os associados. E há um ponto fundamental que é um diferencial de venda: embora seja uma associação (e não uma seguradora tradicional), a Todos Protegidos é REGULAMENTADA e FISCALIZADA pela SUSEP. Ou seja, opera sob regras oficiais e supervisão do órgão do setor — o que dá segurança, credibilidade e garantia ao associado. Use isso a seu favor.
 
 2. ANÁLISE DE RISCO E ACEITAÇÃO
 A seguradora calcula prêmio com base em perfil, score, histórico, CEP, idade do condutor — e pode recusar. A proteção veicular tem aceitação mais ampla e simples. Isso significa que o seu público potencial é MAIOR: inclui quem foi recusado ou achou caro no seguro. Saber disso muda a sua prospecção.
@@ -140,7 +140,7 @@ Guincho, chaveiro, pane seca, troca de pneu — disponível desde o início (res
 Existe e deve ser sempre explicada. Honestidade na carência evita cancelamento e protege a sua reputação de consultor.
 
 RESUMO PARA LEVAR PARA O ATENDIMENTO
-Proteção veicular = aceitação ampla + custo acessível + assistência 24h + 100% FIPE na perda total + adesão simples. Seguro = produto regulado, mais caro, com análise de risco. Posicione a proteção como a escolha inteligente para a maioria dos motoristas — sem atacar o seguro, apenas mostrando onde ela costuma sair na frente.', 4);
+Todos Protegidos = associação regulamentada e fiscalizada pela SUSEP + aceitação ampla + custo acessível + assistência 24h + 100% FIPE na perda total + adesão ágil. Posicione a proteção como a escolha inteligente para a maioria dos motoristas — uma associação com a segurança de ser supervisionada pela SUSEP — sem atacar o seguro tradicional, apenas mostrando onde ela costuma sair na frente.', 4);
   end if;
 
   -- =========================================================

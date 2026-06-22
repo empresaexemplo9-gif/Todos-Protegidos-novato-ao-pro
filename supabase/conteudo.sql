@@ -68,12 +68,12 @@ begin
      'OBJETIVO: entender o que vendemos e falar com segurança.
 
 PONTOS-CHAVE:
-- Proteção veicular é uma associação/rateio entre associados para cobrir prejuízos (roubo, furto, colisão, perda total). Não é seguro regulado pela SUSEP — é mutualismo.
-- Vantagens: adesão sem análise de perfil rígida, sem consulta a score, mensalidade competitiva, assistência 24h.
+- Proteção veicular é uma associação/rateio entre associados para cobrir prejuízos (roubo, furto, colisão, perda total). A Todos Protegidos é uma associação regulamentada e fiscalizada pela SUSEP — mutualismo com a segurança de ser supervisionada pelo órgão oficial.
+- Vantagens: associação regulamentada pela SUSEP (segurança e credibilidade), adesão sem análise de perfil rígida, sem consulta a score, mensalidade competitiva, assistência 24h.
 - O consultor é o elo de confiança: explica com clareza e sem promessas falsas.
 
 ROTEIRO DE FALA (90 segundos):
-"Proteção veicular funciona como uma grande rede de motoristas que se ajudam: todos contribuem com um valor mensal e, quando alguém sofre um prejuízo, a rede cobre. Por isso conseguimos um custo menor e menos burocracia que o seguro tradicional, com assistência 24 horas e cobertura pela tabela FIPE em caso de perda total."', 1),
+"Proteção veicular funciona como uma grande rede de motoristas que se ajudam: todos contribuem com um valor mensal e, quando alguém sofre um prejuízo, a rede cobre. A Todos Protegidos é uma associação regulamentada e fiscalizada pela SUSEP, o que te dá segurança e garantia, com atendimento ágil, assistência 24 horas e cobertura pela tabela FIPE em caso de perda total."', 1),
 
     (t, m, 'info', 'Aula 3.2 — Coberturas, FIPE e assistência 24h', 'O que está incluso',
      'COBERTURAS PADRÃO:
@@ -93,13 +93,13 @@ ROTEIRO MOTO:
 "Para quem trabalha com a moto, ficar sem ela é ficar sem renda. A proteção garante que, se acontecer algo, você volta a rodar rápido — com guincho e indenização."', 3);
 
     insert into public.questoes (tenant_id, modulo_id, enunciado, opcoes, correta, ordem) values
-    (t, m, 'O que melhor define a proteção veicular?', '["Um seguro regulado pela SUSEP","Um sistema de rateio/mutualismo entre associados","Um financiamento do veículo","Uma garantia de fábrica"]'::jsonb, 1, 1),
+    (t, m, 'O que melhor define a proteção veicular da Todos Protegidos?', '["Uma associação de proteção (rateio/mutualismo) regulamentada pela SUSEP","Um financiamento do veículo","Uma garantia de fábrica","Um seguro vendido por seguradora"]'::jsonb, 0, 1),
     (t, m, 'Em caso de perda total, a indenização padrão é de:', '["50% do valor de mercado","Um valor fixo em contrato","100% da tabela FIPE","O valor pago em mensalidades"]'::jsonb, 2, 2),
     (t, m, 'Uma vantagem da proteção veicular frente ao seguro tradicional é:', '["Cobrir apenas carros novos","Menos burocracia e sem consulta a score","Não ter assistência 24h","Validade só em um estado"]'::jsonb, 1, 3),
     (t, m, 'A assistência 24h normalmente inclui:', '["Somente guincho","Guincho, chaveiro, pane seca e troca de pneu","Troca de óleo gratuita","Lavagem do veículo"]'::jsonb, 1, 4),
     (t, m, 'Ao atender quem usa a MOTO para trabalhar, o melhor foco é:', '["O status da moto","Ficar sem renda se algo acontecer","A cor do veículo","O ano de fabricação apenas"]'::jsonb, 1, 5),
     (t, m, 'Traduzir cobertura em benefício significa:', '["Listar termos técnicos","Mostrar o que o cliente ganha na prática (tranquilidade)","Falar só de preço","Evitar explicar a cobertura"]'::jsonb, 1, 6),
-    (t, m, 'A proteção veicular é fiscalizada pela SUSEP?', '["Sim, como seguro","Não — é associativa/mutualista","Sim, pelo Banco Central","Depende do estado"]'::jsonb, 1, 7),
+    (t, m, 'A Todos Protegidos é fiscalizada pela SUSEP?', '["Sim — é uma associação de proteção veicular regulamentada e fiscalizada pela SUSEP","Não, não há nenhuma fiscalização","Apenas pelo Banco Central","Depende do estado"]'::jsonb, 0, 7),
     (t, m, 'Cobertura por fenômenos da natureza protege contra:', '["Multas de trânsito","Enchente, granizo e quedas de árvore","Desvalorização do carro","Manutenção preventiva"]'::jsonb, 1, 8),
     (t, m, 'No atendimento de CARRO, a decisão tende a ser mais:', '["Impulsiva","Racional, ligada a patrimônio e família","Aleatória","Baseada na cor"]'::jsonb, 1, 9),
     (t, m, 'O papel central do consultor é:', '["Empurrar o plano mais caro","Ser o elo de confiança que explica com clareza","Esconder carências","Prometer o que não existe"]'::jsonb, 1, 10);

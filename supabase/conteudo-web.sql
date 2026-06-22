@@ -146,7 +146,7 @@ A ESTRUTURA QUE OS ESPECIALISTAS ENSINAM (igual à do nosso módulo):
 
 "VOU PENSAR" = MANTENHA A CONVERSA ABERTA SEM PRESSIONAR. Descubra o que falta esclarecer e MARQUE UM RETORNO com data. Deixar em aberto é perder; agendar mostra comprometimento.
 
-"JÁ TENHO SEGURO / PROTEÇÃO" = INFORME E DIFERENCIE, SEM DEPRECIAR. "A proteção veicular funciona por rateio entre associados; o seguro é regulado pela SUSEP. Posso te mostrar as diferenças para você escolher com segurança." Autoridade e transparência derrubam a objeção e evitam objeções futuras.
+"JÁ TENHO SEGURO / PROTEÇÃO" = INFORME E DIFERENCIE, SEM DEPRECIAR. "A Todos Protegidos é uma associação de proteção veicular regulamentada e fiscalizada pela SUSEP — rateio entre associados com a segurança de uma empresa supervisionada pelo órgão oficial. Posso te mostrar as diferenças para você escolher com segurança." Autoridade e transparência derrubam a objeção e evitam objeções futuras.
 
 REGRA DE OURO: objeção é sinal de DÚVIDA (e de interesse), não de "não". Quem domina a resposta certa transforma incerteza em fechamento.
 

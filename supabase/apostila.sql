@@ -45,7 +45,7 @@ Proteção veicular é um sistema de AJUDA MÚTUA. Um grupo de pessoas (os assoc
 Repare na diferença de lógica: numa seguradora, você paga um prêmio e a empresa assume o risco visando lucro. Na proteção veicular, o dinheiro é dos próprios associados, administrado pela associação para proteger o grupo. Esse modelo, chamado de rateio, é o que permite custos menores e menos burocracia.
 
 == 2. PROTEÇÃO VEICULAR x SEGURO: AS DIFERENÇAS QUE IMPORTAM ==
-- Natureza: o seguro é um contrato regulado pela SUSEP; a proteção veicular é uma relação associativa (não é seguro). Nunca use as palavras como sinônimo — além de tecnicamente errado, pode gerar reclamação.
+- Natureza e regulamentação: a Todos Protegidos é uma associação de proteção veicular — e, ponto importante, é regulamentada e fiscalizada pela SUSEP. Não é uma seguradora tradicional, mas opera sob supervisão oficial, o que dá segurança e garantia ao associado. Destaque essa regulamentação como diferencial.
 - Aceitação: a seguradora analisa perfil, score e histórico, e pode RECUSAR. A proteção veicular tem aceitação mais ampla e simples. Isso significa que o seu mercado é MAIOR: inclui quem foi recusado ou achou caro no seguro (jovem, carro antigo, motorista de app, histórico de sinistro).
 - Custo: por ter menos custo administrativo e operar por rateio, a mensalidade costuma ser mais acessível.
 - Indenização: na perda total, o padrão é 100% da tabela FIPE.
@@ -76,14 +76,14 @@ USO: quem usa para trabalho valoriza agilidade e assistência; quem usa para laz
 João, motorista de aplicativo, diz: "não preciso disso, nunca bati o carro". Em vez de discordar, o consultor pergunta: "João, e se amanhã alguém bater em você e o carro tiver perda total? Como você trabalharia sem o carro, e ainda pagando as prestações?". João pensa. O consultor mostra a FIPE do carro dele (R$ 45 mil) e a mensalidade equivalente a poucos reais por dia. João percebe que o risco real não era "bater", e sim "ficar sem renda". Fechou.
 
 == ERROS QUE CUSTAM VENDAS ==
-- Chamar proteção de "seguro".
+- Dizer que não tem fiscalização (somos uma associação regulamentada pela SUSEP).
 - Omitir a carência.
 - Listar coberturas em vez de traduzir benefícios.
 - Oferecer plano antes de perguntar o uso.
 - Insegurança ao explicar o produto.
 
 == RESUMO (PONTOS-CHAVE) ==
-1. Proteção veicular = mutualismo/rateio entre associados; não é seguro.
+1. Proteção veicular = associação/rateio entre associados, regulamentada e fiscalizada pela SUSEP.
 2. Aceitação ampla amplia o seu mercado.
 3. 100 por cento da FIPE na perda total é o argumento de ancoragem.
 4. Assistência 24h é o benefício de uso mais frequente.
@@ -426,7 +426,7 @@ EMPATIA -> VALOR -> RECONDUÇÃO.
 == 4. OS CLÁSSICOS, COM SCRIPT ==
 "ESTÁ CARO" (pedido de justificativa de valor): "Entendo. Caro comparado a quê? Veja: por R$ [x] por dia você protege um bem de R$ [FIPE] e ainda tem guincho 24h. O caro de verdade é ter um prejuízo total e ficar sem o carro e sem indenização. Faz sentido garantir essa tranquilidade hoje?"
 "VOU PENSAR" (esconde outra objeção): "Claro, é decisão importante. Só pra eu te ajudar melhor: o que ainda falta ficar claro — é a cobertura, o valor ou a forma de ativar?". Descubra a dúvida real, trate-a e MARQUE UM RETORNO com data.
-"JÁ TENHO SEGURO/PROTEÇÃO" (informe sem depreciar): "Que bom que você se preocupa. A proteção veicular funciona por rateio entre associados; o seguro é regulado pela SUSEP. Posso te mostrar onde a proteção costuma sair mais em conta e com menos burocracia? Sem compromisso."
+"JÁ TENHO SEGURO/PROTEÇÃO" (informe sem depreciar): "Que bom que você se preocupa. A Todos Protegidos é uma associação de proteção veicular regulamentada e fiscalizada pela SUSEP — segurança e garantia, com ótimo custo-benefício. Posso te mostrar as diferenças, sem compromisso?"
 "PRECISO FALAR COM MEU/MINHA CÔNJUGE": "Perfeito, decisão de casa se decide junto. Quer que eu te passe um resumo do que está incluso pra facilitar a conversa?". Agende retorno com data.
 
 == 5. A PSICOLOGIA POR TRÁS ==
