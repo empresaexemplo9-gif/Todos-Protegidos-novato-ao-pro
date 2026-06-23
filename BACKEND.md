@@ -55,6 +55,10 @@ Nada no front-end precisa ser reescrito para ativar — basta configurar.
     - Reordena os institucionais (**Palavra do Presidente** vira Módulo 1 e **Filosofia** Módulo 2), substitui as descrições das aulas de vendas por **material de estudo completo** (leitura aprofundada, sem depender de vídeo) e adiciona uma aula de “Leitura aprofundada” em cada módulo de vendas. Seguro rodar mais de uma vez.
 11. **(Opcional) Boas práticas do mercado** — rode [`supabase/conteudo-web.sql`](supabase/conteudo-web.sql) **depois** dos anteriores.
     - Adiciona em cada módulo de vendas (3–9) uma aula **“Boas práticas do mercado (pesquisa)”**, destilada de referências consagradas de vendas e de conteúdos de proteção veicular, **com as fontes citadas**. Idempotente.
+12. **Correção SUSEP** — rode [`supabase/correcao-susep.sql`](supabase/correcao-susep.sql).
+    - Corrige os conteúdos já gravados para deixar claro que a Todos Protegidos é uma **associação de proteção veicular regulamentada e fiscalizada pela SUSEP**. Idempotente.
+13. **Institucional (apresentação editável)** — rode [`supabase/institucional.sql`](supabase/institucional.sql).
+    - Cria a tabela `institucional` (1 texto por tenant, editável só por **admin/presidente**) e **remove os módulos institucionais da trilha** (Palavra do Presidente + Filosofia deixam de ser módulos de aula). A apresentação é escrita depois, na página **Institucional**.
 
 ### 3. Pegar as chaves de API
 1. **Project Settings → API**.

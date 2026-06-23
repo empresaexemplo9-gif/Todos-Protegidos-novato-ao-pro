@@ -213,6 +213,9 @@
       return Promise.resolve({ ok: true });
     },
 
+    getInstitucional: function () { return Promise.resolve(lsGet("tp_institucional", "")); },
+    saveInstitucional: function (conteudo) { lsSet("tp_institucional", conteudo || ""); return Promise.resolve({ ok: true }); },
+
     listClientes: function () { return Promise.resolve(lsGet("tp_clientes", [])); },
     addCliente: function (d) {
       var arr = lsGet("tp_clientes", []);
@@ -446,6 +449,15 @@
         .then(function (res) { return res.error ? { ok: false, error: traduzErro(res.error.message) } : { ok: true }; });
     },
 
+    getInstitucional: function () {
+      return sb.from("institucional").select("conteudo").maybeSingle()
+        .then(function (res) { return (res.data && res.data.conteudo) || ""; }, function () { return ""; });
+    },
+    saveInstitucional: function (conteudo) {
+      return sb.rpc("set_institucional", { p_conteudo: conteudo || "" })
+        .then(function (res) { return res.error ? { ok: false, error: traduzErro(res.error.message) } : { ok: true }; });
+    },
+
     listClientes: function () {
       return sb.auth.getUser().then(function (r) {
         var u = r.data && r.data.user; if (!u) return [];
@@ -562,6 +574,8 @@
     addManual: function (d) { return impl.addManual(d); },
     updateManual: function (id, d) { return impl.updateManual(id, d); },
     deleteManual: function (id) { return impl.deleteManual(id); },
+    getInstitucional: function () { return impl.getInstitucional(); },
+    saveInstitucional: function (c) { return impl.saveInstitucional(c); },
     listClientes: function () { return impl.listClientes(); },
     addCliente: function (d) { return impl.addCliente(d); },
     updateCliente: function (id, d) { return impl.updateCliente(id, d); },
