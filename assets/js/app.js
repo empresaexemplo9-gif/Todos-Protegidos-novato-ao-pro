@@ -430,55 +430,64 @@
     }, function () { manReload(); });
   }
 
-  // ---- Institucional: módulos da Presidência (Palavra do Presidente + Filosofia) ----
+  // ---- Institucional: apresentação da empresa (texto único editável) ----
   var institucionalRoot = document.getElementById("institucionalRoot");
   if (institucionalRoot) {
     var instEsc = function (s) { return (s == null ? "" : String(s)).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); };
-    var instTipo = { aula: "Aula", video: "Vídeo", info: "Leitura", file: "Material" };
-    function instEhInstitucional(m) { return /presidente|filosofia|cultura|institucional/i.test(m.titulo || ""); }
+    var instConteudo = "", instPodeEditar = false;
+
+    function instView() {
+      var temTexto = (instConteudo || "").trim().length > 0;
+      var editBtn = instPodeEditar
+        ? '<div style="margin-bottom:16px"><button class="btn btn-primary btn-sm" id="instEditBtn">' + (temTexto ? "Editar apresentação" : "Adicionar apresentação") + '</button></div>'
+        : "";
+      var corpo;
+      if (temTexto) {
+        corpo = '<section class="card" style="padding:28px 30px;line-height:1.8;white-space:pre-line;color:var(--tp-slate);font-size:var(--tp-fs-md)">' + instEsc(instConteudo) + '</section>';
+      } else {
+        corpo = '<div class="gestao-empty" style="padding:44px 32px">' +
+          (instPodeEditar
+            ? 'Apresentação da empresa ainda não preenchida. Clique em <strong>“Adicionar apresentação”</strong> para escrever o texto institucional (história, missão, visão, valores, palavra do presidente).'
+            : 'A apresentação da empresa aparece aqui assim que a direção publicá-la.') +
+          '</div>';
+      }
+      institucionalRoot.innerHTML = editBtn + corpo;
+      var b = document.getElementById("instEditBtn");
+      if (b) b.addEventListener("click", instEdit);
+    }
+
+    function instEdit() {
+      institucionalRoot.innerHTML =
+        '<section class="card" style="padding:22px 24px">' +
+          '<label class="m-field"><span style="font-weight:600">Apresentação da empresa</span>' +
+          '<textarea id="instTexto" rows="18" style="width:100%;line-height:1.7" placeholder="Escreva aqui a apresentação da Todos Protegidos: história, missão, visão, valores e a palavra do presidente."></textarea></label>' +
+          '<div class="m-msg" id="instMsg" hidden></div>' +
+          '<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px">' +
+            '<button class="btn btn-ghost btn-sm" id="instCancel">Cancelar</button>' +
+            '<button class="btn btn-primary btn-sm" id="instSave">Salvar</button>' +
+          '</div>' +
+        '</section>';
+      var ta = document.getElementById("instTexto");
+      if (ta) { ta.value = instConteudo || ""; ta.focus(); }
+      document.getElementById("instCancel").addEventListener("click", instView);
+      document.getElementById("instSave").addEventListener("click", function () {
+        var novo = (document.getElementById("instTexto").value || "").trim();
+        var msg = document.getElementById("instMsg");
+        var sv = document.getElementById("instSave"); sv.disabled = true;
+        TPData.saveInstitucional(novo).then(function (r) {
+          sv.disabled = false;
+          if (r && r.ok === false) { msg.textContent = r.error || "Não foi possível salvar."; msg.hidden = false; return; }
+          instConteudo = novo; instView();
+        }, function () { sv.disabled = false; msg.textContent = "Erro de conexão. Tente novamente."; msg.hidden = false; });
+      });
+    }
 
     institucionalRoot.innerHTML = '<div class="gestao-empty" style="padding:32px">Carregando…</div>';
     TPData.session().then(function (s) {
       if (!s) { window.location.href = "login.html"; return; }
-      var ehAdmin = s.role === "admin" || s.role === "superadmin";
-      TPData.listModules().then(function (mods) {
-        mods = mods || [];
-        var inst = mods.filter(instEhInstitucional);
-        if (!inst.length) inst = mods.slice(0, 2);
-        // Presidente primeiro, filosofia em segundo
-        inst.sort(function (a, b) {
-          var ap = /presidente/i.test(a.titulo) ? 0 : 1, bp = /presidente/i.test(b.titulo) ? 0 : 1;
-          return ap - bp;
-        });
-        if (!inst.length) {
-          institucionalRoot.innerHTML = '<div class="gestao-empty" style="padding:40px">O conteúdo institucional aparece aqui assim que a direção publicá-lo.' +
-            (ehAdmin ? '<div style="margin-top:12px"><a class="btn btn-primary btn-sm" href="gestao.html">Ir para a gestão</a></div>' : '') + '</div>';
-          return;
-        }
-        var html = "";
-        inst.forEach(function (m) {
-          html += '<section class="panel">' +
-            '<div class="panel-head"><h3 style="margin:0">' + instEsc(m.titulo) + '</h3>' + (m.sub ? '<span class="badge">' + instEsc(m.sub) + '</span>' : '') + '</div>';
-          var itens = m.itens || [];
-          if (!itens.length) {
-            html += '<div class="gestao-empty" style="padding:24px">Conteúdo em preparação.</div>';
-          } else {
-            html += '<div style="display:grid;gap:14px">';
-            itens.forEach(function (it) {
-              html += '<article class="card" style="padding:18px 20px">' +
-                '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><span class="badge badge-blue">' + instEsc(instTipo[it.tipo] || "Conteúdo") + '</span><strong style="font-family:var(--tp-font-sans);color:var(--tp-ink)">' + instEsc(it.titulo) + '</strong></div>';
-              if (it.url) html += '<a class="btn btn-primary btn-sm" href="aula.html?item=' + encodeURIComponent(it.id) + '">▶ Assistir</a>';
-              if (it.desc) html += '<div class="muted" style="white-space:pre-line;line-height:1.7;margin-top:' + (it.url ? "12px" : "0") + '">' + instEsc(it.desc) + '</div>';
-              else if (it.meta) html += '<div class="muted" style="margin-top:6px">' + instEsc(it.meta) + '</div>';
-              html += '</article>';
-            });
-            html += '</div>';
-          }
-          if (ehAdmin) html += '<div style="margin-top:14px"><a class="btn btn-ghost btn-sm" href="gestao.html">Editar na Gestão de conteúdo</a></div>';
-          html += '</section>';
-        });
-        institucionalRoot.innerHTML = html;
-      }, function () { institucionalRoot.innerHTML = '<div class="gestao-empty" style="padding:40px">Não foi possível carregar o conteúdo institucional.</div>'; });
+      instPodeEditar = s.role === "admin" || s.role === "superadmin";
+      TPData.getInstitucional().then(function (c) { instConteudo = c || ""; instView(); },
+        function () { institucionalRoot.innerHTML = '<div class="gestao-empty" style="padding:40px">Não foi possível carregar a apresentação. Se a tabela ainda não existe no Supabase, rode <code>supabase/institucional.sql</code>.</div>'; });
     }, function () { window.location.href = "login.html"; });
   }
 
