@@ -59,6 +59,11 @@ Nada no front-end precisa ser reescrito para ativar — basta configurar.
     - Corrige os conteúdos já gravados para deixar claro que a Todos Protegidos é uma **associação de proteção veicular regulamentada e fiscalizada pela SUSEP**. Idempotente.
 13. **Institucional (apresentação editável)** — rode [`supabase/institucional.sql`](supabase/institucional.sql).
     - Cria a tabela `institucional` (1 texto por tenant, editável só por **admin/presidente**) e **remove os módulos institucionais da trilha** (Palavra do Presidente + Filosofia deixam de ser módulos de aula). A apresentação é escrita depois, na página **Institucional**.
+14. **(Opcional) Renumerar módulos de vendas** — rode [`supabase/renumerar.sql`](supabase/renumerar.sql) para renumerar os módulos aprofundados 3–9 → 1–7.
+15. **História no Institucional** — rode [`supabase/institucional-historia.sql`](supabase/institucional-historia.sql) (depois do `institucional.sql`) para preencher a apresentação da empresa.
+16. **Pré-treinamento "Primeiros Passos"** — rode [`supabase/primeiros-passos.sql`](supabase/primeiros-passos.sql).
+    - Cria os módulos **I a VI** (algarismos romanos) **acima** dos módulos aprofundados: boas-vindas/mercado, produto, ferramentas (**SGA, Power CRM, Visto** passo a passo), técnicas de vendas, abordagem externa e vendas pelo WhatsApp. Idempotente.
+17. **Operação / CRM (Power CRM)** — veja [`POWERCRM.md`](POWERCRM.md): rode `supabase/crm.sql`, publique a função `powercrm-webhook` e configure o webhook.
 
 ### 3. Pegar as chaves de API
 1. **Project Settings → API**.
