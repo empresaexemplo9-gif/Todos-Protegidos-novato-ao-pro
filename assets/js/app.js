@@ -551,8 +551,10 @@
   }
 
   // ---- Trilha resumida + progresso real no dashboard ----
+  // O treinamento (lista de módulos) só aparece na página Trilha (#trilhaLista).
+  // Na Visão geral mantemos apenas o RESUMO de progresso (nível/%, aulas).
   var trilhaLista = document.getElementById("trilhaLista");
-  if (trilhaLista) {
+  if (trilhaLista || document.getElementById("welcomePct")) {
     var escT = function (s) { var d = document.createElement("div"); d.textContent = s == null ? "" : s; return d.innerHTML; };
     var setTxt = function (id, t) { var e = document.getElementById(id); if (e) e.textContent = t; };
     var setW = function (id, w) { var e = document.getElementById(id); if (e) e.style.width = w; };
@@ -577,6 +579,7 @@
       setTxt("sideHint", total ? (dn >= total ? "Trilha concluída! 🎉" : "Faltam " + (total - dn) + " aula(s) para 100%") : "Comece sua trilha para evoluir");
       setTxt("kpiAulas", String(dn));
 
+      if (!trilhaLista) return; // Visão geral: só o resumo acima, sem a lista de módulos
       if (!mods.length) {
         trilhaLista.innerHTML = '<div class="gestao-empty" style="padding:28px">Sua trilha aparece aqui assim que a gestão publicar os módulos.<div style="margin-top:12px"><a class="btn btn-primary btn-sm" href="gestao.html">Ir para a gestão</a></div></div>';
         return;
@@ -597,7 +600,7 @@
         html += '</div>';
       });
       trilhaLista.innerHTML = html;
-    }, function () { trilhaLista.innerHTML = '<div class="gestao-empty" style="padding:24px">Não foi possível carregar a trilha.</div>'; });
+    }, function () { if (trilhaLista) trilhaLista.innerHTML = '<div class="gestao-empty" style="padding:24px">Não foi possível carregar a trilha.</div>'; });
   }
 
   // ---- Player da trilha (consultor) ----
