@@ -22,6 +22,21 @@
     }
     window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault(); deferred = e; showInstall(); });
     window.addEventListener("appinstalled", function () { var b = document.getElementById("tpInstall"); if (b && b.parentNode) b.parentNode.removeChild(b); deferred = null; });
+
+    // iOS (Safari): não existe prompt automático — mostra a instrução de instalação.
+    function isStandalone() { return window.navigator.standalone === true || (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches); }
+    function iosHint() {
+      var ua = navigator.userAgent || "";
+      var isIOS = /iphone|ipad|ipod/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+      if (!isIOS || isStandalone() || !document.body || document.getElementById("tpIosHint")) return;
+      try { if (localStorage.getItem("tp_ios_hint") === "1") return; } catch (e) {}
+      var d = document.createElement("div"); d.id = "tpIosHint";
+      d.setAttribute("style", "position:fixed;left:12px;right:12px;bottom:14px;z-index:9999;background:#1e3a8c;color:#fff;font:500 13px/1.45 Inter,system-ui,sans-serif;padding:12px 14px;border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.28);display:flex;align-items:center;gap:10px");
+      d.innerHTML = '<span style="font-size:18px">📲</span><span style="flex:1">Para instalar no iPhone: toque em <b>Compartilhar</b> e depois em <b>Adicionar à Tela de Início</b>.</span><button type="button" aria-label="Fechar" style="background:transparent;border:0;color:#fff;font-size:20px;line-height:1;cursor:pointer">&times;</button>';
+      d.querySelector("button").addEventListener("click", function () { try { localStorage.setItem("tp_ios_hint", "1"); } catch (e) {} if (d.parentNode) d.parentNode.removeChild(d); });
+      document.body.appendChild(d);
+    }
+    if (document.readyState !== "loading") iosHint(); else window.addEventListener("DOMContentLoaded", iosHint);
   })();
 
   // Sessão / logout (via camada de dados TPData — Supabase ou local)
